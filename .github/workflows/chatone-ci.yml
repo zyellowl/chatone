@@ -14,12 +14,40 @@ jobs:
   custom-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
       - name: Verify ChatOne customizations
         run: npm run test:chatone
+      - name: Reject upstream maintainer automations
+        shell: bash
+        run: |
+          forbidden_workflows=(
+            client.yml
+            data-provider.yml
+            data-schemas.yml
+            deploy-dev.yml
+            dev-branch-images.yml
+            dev-images.yml
+            generate_embeddings.yml
+            gitnexus-cleanup-pr.yml
+            gitnexus-deploy.yml
+            gitnexus-index.yml
+            gitnexus-pr-command.yml
+            helmcharts.yml
+            locize-i18n-sync.yml
+            retry-docker-builds.yml
+            sync-helm-chart-tags.yml
+            tag-images.yml
+          )
+
+          for workflow in "${forbidden_workflows[@]}"; do
+            if [ -e ".github/workflows/$workflow" ]; then
+              echo "::error::.github/workflows/$workflow is upstream maintainer automation and must stay disabled"
+              exit 1
+            fi
+          done
       - name: Reject committed local secrets and private data
         shell: bash
         run: |
