@@ -32,4 +32,5 @@ jobs:
           ! git grep -I -E 'Personal AI|personal-ai|PersonalAI|personal_ai' -- \
             ':!custom/codex-bridge/install-launch-agent.sh' \
             ':!custom/codex-bridge/uninstall-launch-agent.sh' \
-            ':!custom/macos/Info.plist'
+            ':!custom/macos/Info.plist' \
+            ':!.github/workflows/chatone-ci.yml'
