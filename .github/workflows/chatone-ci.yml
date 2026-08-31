@@ -1,0 +1,34 @@
+name: ChatOne checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  custom-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Verify ChatOne customizations
+        run: npm run test:chatone
+      - name: Reject committed local secrets and private data
+        shell: bash
+        run: |
+          test ! -f .env
+          test ! -f auth.json
+          ! git ls-files | grep -E '(^|/)(uploads|dist|logs)/|openai\.json$|\.archive$'
+      - name: Reject obsolete product branding
+        shell: bash
+        run: |
+          ! git grep -I -E 'Personal AI|personal-ai|PersonalAI|personal_ai' -- \
+            ':!custom/codex-bridge/install-launch-agent.sh' \
+            ':!custom/codex-bridge/uninstall-launch-agent.sh' \
+            ':!custom/macos/Info.plist'

@@ -1,0 +1,89 @@
+services:
+  volume-init:
+    image: chatone-librechat:0.8.7
+    user: '0:0'
+    restart: 'no'
+    command:
+      - sh
+      - -c
+      - >-
+        chown -R "$${TARGET_UID}:$${TARGET_GID}"
+        /data/images /data/uploads /data/logs /data/mongodb /data/meilisearch
+    environment:
+      TARGET_UID: ${UID}
+      TARGET_GID: ${GID}
+    volumes:
+      - chatone_images:/data/images
+      - chatone_uploads:/data/uploads
+      - chatone_logs:/data/logs
+      - chatone_mongodb:/data/mongodb
+      - chatone_meilisearch:/data/meilisearch
+  api:
+    container_name: ChatOne
+    image: chatone-librechat:0.8.7
+    build:
+      context: .
+      target: node
+    env_file:
+      - .env
+    environment: !override
+      HOST: 0.0.0.0
+      MONGO_URI: mongodb://mongodb:27017/LibreChat
+      MEILI_HOST: http://meilisearch:7700
+      SEARCH: 'true'
+      NO_PROXY: localhost,127.0.0.1,::1,mongodb,chat-mongodb,meilisearch,chat-meilisearch,host.docker.internal
+    depends_on: !override
+      volume-init:
+        condition: service_completed_successfully
+      mongodb:
+        condition: service_started
+    volumes: !override
+      - ./librechat.yaml:/app/librechat.yaml:ro
+      - chatone_images:/app/client/public/images
+      - chatone_uploads:/app/uploads
+      - chatone_logs:/app/logs
+  mongodb:
+    depends_on:
+      volume-init:
+        condition: service_completed_successfully
+    volumes: !override
+      - chatone_mongodb:/data/db
+  meilisearch:
+    depends_on:
+      volume-init:
+        condition: service_completed_successfully
+    volumes: !override
+      - chatone_meilisearch:/meili_data
+  searxng:
+    image: docker.io/searxng/searxng:latest
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:8088:8080'
+    environment:
+      SEARXNG_BASE_URL: http://127.0.0.1:8088/
+      SEARXNG_SECRET: ${SEARXNG_SECRET:-chatone-local-search}
+    volumes:
+      - ./custom/searxng/settings.yml:/etc/searxng/settings.yml:ro
+      - chatone_searxng:/var/cache/searxng
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - wget -qO- 'http://127.0.0.1:8080/' >/dev/null || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+  vectordb:
+    profiles:
+      - rag
+  rag_api:
+    profiles:
+      - rag
+
+volumes:
+  chatone_images:
+  chatone_uploads:
+  chatone_logs:
+  chatone_mongodb:
+  chatone_meilisearch:
+  chatone_searxng:

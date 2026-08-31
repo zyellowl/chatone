@@ -9,6 +9,14 @@
     "packages/*"
   ],
   "scripts": {
+    "macos:build": "zsh custom/macos/build.sh",
+    "codex-bridge": "node custom/codex-bridge/server.mjs",
+    "ios:prepare": "zsh custom/ios/prepare.sh",
+    "ios:build": "zsh custom/ios/build.sh",
+    "ios:run": "zsh custom/ios/run-simulator.sh",
+    "ios:test": "node --test custom/tests/ios.test.mjs",
+    "test:chatone": "node --test custom/tests/config.test.mjs custom/tests/ios.test.mjs custom/codex-bridge/resilience.test.mjs",
+    "verify:chatone": "npm run test:chatone && npm run macos:build",
     "update": "node config/update.js",
     "add-balance": "node config/add-balance.js",
     "set-balance": "node config/set-balance.js",

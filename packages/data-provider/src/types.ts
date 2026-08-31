@@ -768,6 +768,93 @@ export type TBalanceResponse = {
   refillAmount?: number;
 };
 
+export type TUsageRange = '7d' | '30d' | '90d' | 'all';
+
+export type TUsageSummary = {
+  requests: number;
+  subscriptionRequests: number;
+  inputTokens: number;
+  outputTokens: number;
+  cacheReadTokens: number;
+  cacheWriteTokens: number;
+  totalTokens: number;
+  estimatedZenMuxCostUSD: number;
+};
+
+export type TUsageBreakdown = {
+  requests: number;
+  inputTokens: number;
+  outputTokens: number;
+  cacheReadTokens: number;
+  cacheWriteTokens: number;
+  totalTokens: number;
+  costUSD: number;
+};
+
+export type TUsageModel = TUsageBreakdown & {
+  model: string;
+  provider: string;
+  billingMode: 'metered' | 'subscription';
+};
+
+export type TUsageDay = TUsageBreakdown & {
+  date: string;
+};
+
+export type TUsageRequest = Omit<TUsageBreakdown, 'requests'> & {
+  id: string;
+  messageId?: string;
+  conversationId?: string;
+  model: string;
+  createdAt: string;
+  billingMode: 'metered' | 'subscription';
+};
+
+export type TUsageResponse = {
+  range: TUsageRange;
+  updatedAt: string;
+  summary: TUsageSummary;
+  daily: TUsageDay[];
+  models: TUsageModel[];
+  recent: TUsageRequest[];
+};
+
+export type TSubscriptionQuotaWindow = {
+  name: 'primary' | 'secondary' | 'tertiary';
+  usedPercent: number;
+  remainingPercent: number;
+  resetsAt?: string;
+  windowMinutes?: number;
+};
+
+export type TSubscriptionUsageResponse = {
+  available: boolean;
+  source: 'openai-subscription' | 'codexbar-oauth';
+  planType?: string;
+  updatedAt: string;
+  weekly?: TSubscriptionQuotaWindow;
+  session?: TSubscriptionQuotaWindow;
+  errorCode?: 'subscription_quota_unavailable';
+};
+
+export type TSubscriptionAuthStatus = {
+  connected: boolean;
+  status: 'idle' | 'pending' | 'connected' | 'error';
+  provider: 'openai-codex';
+  authentication?: 'chatgpt-oauth';
+  accountIdSuffix?: string;
+  expiresAt?: string;
+  authorizationUrl?: string;
+  errorCode?:
+    | 'subscription_login_cancelled'
+    | 'subscription_callback_unavailable'
+    | 'subscription_region_unsupported'
+    | 'subscription_login_failed';
+  message?: string;
+  models: string[];
+  updatedAt: string;
+};
+
 /* -------------------------------------------------------------------------- */
 /* Skill UI extensions (not yet persisted — phase 2 backend will fill these)  */
 /* -------------------------------------------------------------------------- */

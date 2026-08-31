@@ -154,6 +154,30 @@ export function getUserBalance(): Promise<t.TBalanceResponse> {
   return request.get(endpoints.balance());
 }
 
+export function getUsage(range: t.TUsageRange, timezoneOffset: number): Promise<t.TUsageResponse> {
+  return request.get(endpoints.usage(range, timezoneOffset));
+}
+
+export function getSubscriptionUsage(): Promise<t.TSubscriptionUsageResponse> {
+  return request.get(endpoints.subscriptionUsage());
+}
+
+export function getSubscriptionAuth(): Promise<t.TSubscriptionAuthStatus> {
+  return request.get(endpoints.subscriptionAuth());
+}
+
+export function startSubscriptionAuth(): Promise<t.TSubscriptionAuthStatus> {
+  return request.post(endpoints.subscriptionAuthLogin());
+}
+
+export function cancelSubscriptionAuth(): Promise<t.TSubscriptionAuthStatus> {
+  return request.post(endpoints.subscriptionAuthCancel());
+}
+
+export function logoutSubscriptionAuth(): Promise<t.TSubscriptionAuthStatus> {
+  return request.post(endpoints.subscriptionAuthLogout());
+}
+
 export const updateTokenCount = (text: string) => {
   return request.post(endpoints.tokenizer(), { arg: text });
 };

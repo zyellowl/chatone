@@ -32,6 +32,8 @@ client/src/localization/languages/*_missing_keys.json
 
 # Turborepo
 .turbo
+custom/macos/.build/
+custom/ios/.build/
 
 # Compiled Dirs (http://nodejs.org/api/addons.html)
 build/
@@ -73,6 +75,7 @@ bower_components/
 
 #config file
 librechat.yaml
+!librechat.yaml
 librechat.yml
 
 # Environment
@@ -107,6 +110,7 @@ junit.xml
 # docker override file
 docker-compose.override.yaml
 docker-compose.override.yml
+!docker-compose.override.yaml
 
 # meilisearch
 meilisearch

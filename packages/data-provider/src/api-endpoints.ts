@@ -1,5 +1,6 @@
 import type { StartupConfigContext } from './config';
 import type { AssistantsEndpoint } from './schemas';
+import type * as t from './types';
 import { ResourceType } from './accessPermissions';
 import * as q from './types/queries';
 
@@ -44,6 +45,14 @@ export const health = () => `${BASE_URL}/health`;
 export const user = () => `${BASE_URL}/api/user`;
 
 export const balance = () => `${BASE_URL}/api/balance`;
+
+export const usage = (range: t.TUsageRange, timezoneOffset: number) =>
+  `${BASE_URL}/api/usage?range=${range}&timezoneOffset=${timezoneOffset}`;
+export const subscriptionUsage = () => `${BASE_URL}/api/usage/subscription`;
+export const subscriptionAuth = () => `${BASE_URL}/api/usage/subscription/auth`;
+export const subscriptionAuthLogin = () => `${subscriptionAuth()}/login`;
+export const subscriptionAuthCancel = () => `${subscriptionAuth()}/cancel`;
+export const subscriptionAuthLogout = () => `${subscriptionAuth()}/logout`;
 
 export const userPlugins = () => `${BASE_URL}/api/user/plugins`;
 

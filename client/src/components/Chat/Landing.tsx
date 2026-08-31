@@ -1,7 +1,6 @@
 import { useMemo, useCallback, useState, useEffect, useRef } from 'react';
-import { easings } from '@react-spring/web';
 import { EModelEndpoint } from 'librechat-data-provider';
-import { BirthdayIcon, TooltipAnchor, SplitText } from '@librechat/client';
+import { BirthdayIcon, TooltipAnchor } from '@librechat/client';
 import {
   getIconEndpoint,
   getEntity,
@@ -43,8 +42,6 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
   const { user } = useAuthContext();
   const localize = useLocalize();
 
-  const [textHasMultipleLines, setTextHasMultipleLines] = useState(false);
-  const [lineCount, setLineCount] = useState(1);
   const [contentHeight, setContentHeight] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -126,26 +123,24 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
     }
   }, [localize, startupConfig?.interface?.customWelcome, user?.name]);
 
-  const handleLineCountChange = useCallback((count: number) => {
-    setTextHasMultipleLines(count > 1);
-    setLineCount(count);
-  }, []);
+  const greetingText =
+    typeof startupConfig?.interface?.customWelcome === 'string'
+      ? getGreeting()
+      : getGreeting() + (user?.name ? ', ' + user.name : '');
 
   useEffect(() => {
     if (contentRef.current) {
       setContentHeight(contentRef.current.offsetHeight);
     }
-  }, [lineCount, description]);
+  }, [description, greetingText]);
 
   const getDynamicMargin = useMemo(() => {
     let margin = 'mb-0';
 
-    if (lineCount > 2 || (description && description.length > 100)) {
+    if (description && description.length > 100) {
       margin = 'mb-10';
-    } else if (lineCount > 1 || (description && description.length > 0)) {
+    } else if (description && description.length > 0) {
       margin = 'mb-6';
-    } else if (textHasMultipleLines) {
-      margin = 'mb-4';
     }
 
     if (contentHeight > 200) {
@@ -155,22 +150,15 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
     }
 
     return margin;
-  }, [lineCount, description, textHasMultipleLines, contentHeight]);
-
-  const greetingText =
-    typeof startupConfig?.interface?.customWelcome === 'string'
-      ? getGreeting()
-      : getGreeting() + (user?.name ? ', ' + user.name : '');
+  }, [description, contentHeight]);
 
   return (
     <div
-      className={`flex h-full transform-gpu flex-col items-center justify-center pb-16 transition-all duration-200 ${centerFormOnLanding ? 'max-h-full sm:max-h-0' : 'max-h-full'} ${getDynamicMargin}`}
+      className={`personal-claude-landing flex h-full transform-gpu flex-col items-center justify-center pb-16 transition-all duration-200 ${centerFormOnLanding ? 'max-h-full sm:max-h-0' : 'max-h-full'} ${getDynamicMargin}`}
     >
       <div ref={contentRef} className="flex flex-col items-center gap-0 p-2">
-        <div
-          className={`flex ${textHasMultipleLines ? 'flex-col' : 'flex-col md:flex-row'} items-center justify-center gap-2`}
-        >
-          <div className={`relative size-10 justify-center ${textHasMultipleLines ? 'mb-2' : ''}`}>
+        <div className="flex flex-col items-center justify-center gap-2 md:flex-row">
+          <div className="personal-landing-model-icon relative size-10 justify-center">
             <ConvoIcon
               agentsMap={agentsMap}
               assistantMap={assistantMap}
@@ -191,46 +179,30 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
               </TooltipAnchor>
             )}
           </div>
-          {((isAgent || isAssistant) && name) || name ? (
+          {(isAgent || isAssistant) && name ? (
             <div className="flex flex-col items-center gap-0 p-2">
-              <SplitText
-                key={`split-text-${name}`}
-                text={name}
-                className={`${getTextSizeClass(name)} font-medium text-text-primary`}
-                delay={50}
-                textAlign="center"
-                animationFrom={{ opacity: 0, transform: 'translate3d(0,50px,0)' }}
-                animationTo={{ opacity: 1, transform: 'translate3d(0,0,0)' }}
-                easing={easings.easeOutCubic}
-                threshold={0}
-                rootMargin="0px"
-                onLineCountChange={handleLineCountChange}
-              />
+              <h1
+                className={`personal-claude-greeting ${getTextSizeClass(name)} font-medium text-text-primary`}
+              >
+                {name}
+              </h1>
             </div>
           ) : (
-            <SplitText
-              key={`split-text-${greetingText}${user?.name ? '-user' : ''}`}
-              text={greetingText}
-              className={`${getTextSizeClass(greetingText)} font-medium text-text-primary`}
-              delay={50}
-              textAlign="center"
-              animationFrom={{ opacity: 0, transform: 'translate3d(0,50px,0)' }}
-              animationTo={{ opacity: 1, transform: 'translate3d(0,0,0)' }}
-              easing={easings.easeOutCubic}
-              threshold={0}
-              rootMargin="0px"
-              onLineCountChange={handleLineCountChange}
-            />
+            <h1
+              className={`personal-claude-greeting ${getTextSizeClass(greetingText)} font-medium text-text-primary`}
+            >
+              {greetingText}
+            </h1>
           )}
         </div>
         {description &&
           (descriptionIsHTML ? (
             <div
-              className="animate-fadeIn mt-4 flex max-w-md items-center justify-center gap-2 text-center text-sm font-normal text-text-primary [&_img]:inline-block [&_img]:h-4 [&_img]:w-4"
+              className="personal-claude-landing-description animate-fadeIn mt-4 flex max-w-md items-center justify-center gap-2 text-center text-sm font-normal text-text-primary [&_img]:inline-block [&_img]:h-4 [&_img]:w-4"
               dangerouslySetInnerHTML={{ __html: sanitizeDescription(description) }}
             />
           ) : (
-            <div className="animate-fadeIn mt-4 max-w-md text-center text-sm font-normal text-text-primary">
+            <div className="personal-claude-landing-description animate-fadeIn mt-4 max-w-md text-center text-sm font-normal text-text-primary">
               {description}
             </div>
           ))}

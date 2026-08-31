@@ -1,3 +1,103 @@
+# ChatOne on LibreChat
+
+ChatOne is an open-source personal chat experience built on LibreChat `v0.8.7`. GPT models use the current
+macOS user's ChatGPT/Codex OAuth subscription through a loopback-only compatibility bridge. ZenMux
+remains configured for optional non-GPT providers; all credentials remain server-side.
+
+ChatOne is an independent community project. It is not affiliated with or endorsed by Anthropic,
+OpenAI, ZenMux, TrollStore, or the LibreChat maintainers. LibreChat attribution and its MIT license
+are preserved below and in [LICENSE](LICENSE).
+
+Repository updates follow the checks in [docs/MAINTENANCE.md](docs/MAINTENANCE.md). Every ChatOne
+change should pass `npm run test:chatone`, a production Docker build, a macOS build, and a secret
+scan before it is pushed to the public `main` branch.
+
+```bash
+node custom/scripts/setup-env.mjs
+# Add ZENMUX_API_KEY to .env
+node custom/scripts/sync-models.mjs
+docker compose build api
+docker compose up -d
+```
+
+## Native macOS app
+
+After the Docker setup has created the ChatOne containers once, build the native AppKit/WebKit
+client with:
+
+```bash
+npm run macos:build
+open "dist/ChatOne.app"
+```
+
+The app checks the local LibreChat health endpoint and starts the existing MongoDB, Meilisearch,
+and LibreChat containers when needed. It never reads or stores `ZENMUX_API_KEY`; the key remains in
+the server-side Docker environment. See [custom/macos/README.md](custom/macos/README.md).
+
+### GPT through the ChatGPT subscription
+
+The model selector exposes every model reported by the authenticated `openai-codex` provider:
+GPT 5.6 Sol, Terra and Luna, GPT 5.5, GPT 5.4, GPT 5.4 mini, and GPT 5.3 Codex Spark. Requests use
+the ChatGPT subscription allowance rather than ZenMux API balance.
+
+```bash
+zsh custom/codex-bridge/install-launch-agent.sh
+curl http://127.0.0.1:4317/v1/models
+```
+
+## Native iOS app
+
+The SwiftUI/WebKit iPhone and iPad client reuses the same LibreChat account, conversations, file
+uploads, model selector, streaming and ZenMux Web Search. It stores only the non-secret server URL
+and persistent LibreChat web session; `ZENMUX_API_KEY` remains in the Docker API environment.
+
+```bash
+npm run ios:prepare
+npm run ios:build
+npm run ios:run
+open custom/ios/ChatOne.xcodeproj
+```
+
+Simulator uses `http://127.0.0.1:3080`. A physical iPhone shows a first-launch server screen for the
+Mac LAN URL or a private HTTPS deployment. See [custom/ios/README.md](custom/ios/README.md).
+
+## Native web search
+
+ZenMux's Anthropic-compatible models retain their native server-side web search option. The local
+GPT subscription bridge handles chat, reasoning, streaming, images, cancellation, and live web
+search. Current-information questions use Bing's public RSS search with the bundled, local-only
+SearXNG service as a fallback. The bridge safely reads a few top public HTTPS pages so the answer is
+based on page content rather than snippets alone. Weather questions also use Open-Meteo structured
+forecast data. Search results and source links are added to the model context; no search credential
+or ChatGPT OAuth credential is sent to the browser.
+
+Before every enabled turn, a lightweight subscription model reviews the recent conversation and
+decides whether an accurate answer needs current external information. It resolves short follow-ups,
+generates one or two search-engine queries, and skips retrieval for stable explanations, writing,
+translation, and other self-contained requests. This contextual decision is the general gateway;
+weather and A-share handlers are optional structured enrichers after retrieval has been selected,
+not hard-coded gates. Each structured response contains its retrieval time and source links and
+falls back independently if an optional source is temporarily unavailable.
+
+```bash
+docker compose up -d searxng
+curl 'http://127.0.0.1:8088/search?q=Hangzhou+weather&format=json'
+```
+
+SearXNG is published on `127.0.0.1:8088` only. GPT subscription presets deliberately do not enable
+LibreChat's separate paid-search preset: the loopback subscription bridge owns this path and keeps
+the existing streaming `/v1/chat/completions` integration stable.
+
+Search queries are sent to Bing or the public engines enabled in SearXNG. Page reading accepts HTTPS
+only, validates redirects and resolved addresses, blocks local/private targets, limits downloads,
+and supports the Mac's Clash fake-IP DNS mode without allowing literal fake-IP URLs.
+
+The curated model registry also records ZenMux's context metadata. LibreChat receives a safe 90%
+working budget for each favorite model, while endpoint token metadata prevents provider-prefixed
+ZenMux IDs from falling back to an incorrect 1K context window.
+
+The upstream LibreChat README continues below.
+
 <p align="center">
   <a href="https://librechat.ai">
     <img src="client/public/assets/logo.svg" height="256">
@@ -51,25 +151,24 @@
   </a>
 </p>
 
-
 # ✨ Features
 
 - 🖥️ **UI & Experience** inspired by ChatGPT with enhanced design and features
 
-- 🤖 **AI Model Selection**:  
+- 🤖 **AI Model Selection**:
   - Anthropic (Claude), AWS Bedrock, OpenAI, Azure OpenAI, Google, Vertex AI, OpenAI Responses API (incl. Azure)
   - [Custom Endpoints](https://www.librechat.ai/docs/quick_start/custom_endpoints): Use any OpenAI-compatible API with LibreChat, no proxy required
   - Compatible with [Local & Remote AI Providers](https://www.librechat.ai/docs/configuration/librechat_yaml/ai_endpoints):
     - Ollama, groq, Cohere, Mistral AI, Apple MLX, koboldcpp, together.ai,
     - OpenRouter, Helicone, Perplexity, ShuttleAI, Deepseek, Qwen, and more
 
-- 🔧 **[Code Interpreter API](https://www.librechat.ai/docs/features/code_interpreter)**: 
+- 🔧 **[Code Interpreter API](https://www.librechat.ai/docs/features/code_interpreter)**:
   - Secure, Sandboxed Execution in Python, Node.js (JS/TS), Go, C/C++, Java, PHP, Rust, and Fortran
   - Seamless File Handling: Upload, process, and download files directly
   - No Privacy Concerns: Fully isolated and secure execution
   - Open-Source & Self-Hostable: powered by [ClickHouse/code-interpreter](https://github.com/ClickHouse/code-interpreter)
 
-- 🔦 **Agents & Tools Integration**:  
+- 🔦 **Agents & Tools Integration**:
   - **[LibreChat Agents](https://www.librechat.ai/docs/features/agents)**:
     - No-Code Custom Assistants: Build specialized, AI-driven helpers
     - Agent Marketplace: Discover and deploy community-built agents
@@ -80,13 +179,13 @@
     - Compatible with Custom Endpoints, OpenAI, Azure, Anthropic, AWS Bedrock, Google, Vertex AI, Responses API, and more
     - [Model Context Protocol (MCP) Support](https://modelcontextprotocol.io/clients#librechat) for Tools
 
-- 🔍 **Web Search**:  
+- 🔍 **Web Search**:
   - Search the internet and retrieve relevant information to enhance your AI context
   - Combines search providers, content scrapers, and result rerankers for optimal results
   - **Customizable Jina Reranking**: Configure custom Jina API URLs for reranking services
   - **[Learn More →](https://www.librechat.ai/docs/features/web_search)**
 
-- 🪄 **Generative UI with Code Artifacts**:  
+- 🪄 **Generative UI with Code Artifacts**:
   - [Code Artifacts](https://youtu.be/GfTj7O4gmd0?si=WJbdnemZpJzBrJo3) allow creation of React, HTML, and Mermaid diagrams directly in chat
 
 - 🎨 **Image Generation & Editing**
@@ -94,15 +193,15 @@
   - Text-to-image with [DALL-E (3/2)](https://www.librechat.ai/docs/features/image_gen#2--dalle-legacy), [Stable Diffusion](https://www.librechat.ai/docs/features/image_gen#3--stable-diffusion-local), [Flux](https://www.librechat.ai/docs/features/image_gen#4--flux), or any [MCP server](https://www.librechat.ai/docs/features/image_gen#5--model-context-protocol-mcp)
   - Produce stunning visuals from prompts or refine existing images with a single instruction
 
-- 💾 **Presets & Context Management**:  
-  - Create, Save, & Share Custom Presets  
+- 💾 **Presets & Context Management**:
+  - Create, Save, & Share Custom Presets
   - Switch between AI Endpoints and Presets mid-chat
-  - Edit, Resubmit, and Continue Messages with Conversation branching  
+  - Edit, Resubmit, and Continue Messages with Conversation branching
   - Create and share prompts with specific users and groups
   - [Fork Messages & Conversations](https://www.librechat.ai/docs/features/fork) for Advanced Context control
 
-- 💬 **Multimodal & File Interactions**:  
-  - Upload and analyze images with Claude 3, GPT-4.5, GPT-4o, o1, Llama-Vision, and Gemini 📸  
+- 💬 **Multimodal & File Interactions**:
+  - Upload and analyze images with Claude 3, GPT-4.5, GPT-4o, o1, Llama-Vision, and Gemini 📸
   - Chat with Files using Custom Endpoints, OpenAI, Azure, Anthropic, AWS Bedrock, & Google 🗃️
 
 - 🌎 **Multilingual UI**:
@@ -111,27 +210,27 @@
   - Türkçe, Nederlands, עברית, Català, Čeština, Dansk, Eesti, فارسی
   - Suomi, Magyar, Հայերեն, Bahasa Indonesia, ქართული, Latviešu, ไทย, ئۇيغۇرچە
 
-- 🧠 **Reasoning UI**:  
+- 🧠 **Reasoning UI**:
   - Dynamic Reasoning UI for Chain-of-Thought/Reasoning AI models like DeepSeek-R1
 
-- 🎨 **Customizable Interface**:  
+- 🎨 **Customizable Interface**:
   - Customizable Dropdown & Interface that adapts to both power users and newcomers
 
-- 🌊 **[Resumable Streams](https://www.librechat.ai/docs/features/resumable_streams)**:  
+- 🌊 **[Resumable Streams](https://www.librechat.ai/docs/features/resumable_streams)**:
   - Never lose a response: AI responses automatically reconnect and resume if your connection drops
   - Multi-Tab & Multi-Device Sync: Open the same chat in multiple tabs or pick up on another device
   - Production-Ready: Works from single-server setups to horizontally scaled deployments with Redis
 
-- 🗣️ **Speech & Audio**:  
-  - Chat hands-free with Speech-to-Text and Text-to-Speech  
-  - Automatically send and play Audio  
+- 🗣️ **Speech & Audio**:
+  - Chat hands-free with Speech-to-Text and Text-to-Speech
+  - Automatically send and play Audio
   - Supports OpenAI, Azure OpenAI, and Elevenlabs
 
-- 📥 **Import & Export Conversations**:  
-  - Import Conversations from LibreChat, ChatGPT, Chatbot UI  
+- 📥 **Import & Export Conversations**:
+  - Import Conversations from LibreChat, ChatGPT, Chatbot UI
   - Export conversations as screenshots, markdown, text, json
 
-- 🔍 **Search & Discovery**:  
+- 🔍 **Search & Discovery**:
   - Search all messages/conversations
 
 - 👥 **Multi-User & Secure Access**:
@@ -143,13 +242,13 @@
   - Edit settings and per-role/group permissions live, without redeploying
   - Bundled with the Docker Compose stacks for one-command setup
 
-- ⚙️ **Configuration & Deployment**:  
-  - Configure Proxy, Reverse Proxy, Docker, & many Deployment options  
+- ⚙️ **Configuration & Deployment**:
+  - Configure Proxy, Reverse Proxy, Docker, & many Deployment options
   - Use [S3 with CloudFront](https://www.librechat.ai/docs/configuration/cdn/cloudfront) for stable media links, edge delivery, signed cookies, and secured downloads
   - Use completely local or deploy on the cloud
 
-- 📖 **Open-Source & Community**:  
-  - Completely Open-Source & Built in Public  
+- 📖 **Open-Source & Community**:
+  - Completely Open-Source & Built in Public
   - Community-driven development, support, and feedback
 
 [For a thorough review of our features, see our docs here](https://docs.librechat.ai/) 📚
@@ -167,21 +266,24 @@ Open source, actively developed, and built for anyone who values control over th
 ## 🌐 Resources
 
 **GitHub Repo:**
-  - **RAG API:** [github.com/danny-avila/rag_api](https://github.com/danny-avila/rag_api)
-  - **Website:** [github.com/LibreChat-AI/librechat.ai](https://github.com/LibreChat-AI/librechat.ai)
+
+- **RAG API:** [github.com/danny-avila/rag_api](https://github.com/danny-avila/rag_api)
+- **Website:** [github.com/LibreChat-AI/librechat.ai](https://github.com/LibreChat-AI/librechat.ai)
 
 **Other:**
-  - **Website:** [librechat.ai](https://librechat.ai)
-  - **Documentation:** [librechat.ai/docs](https://librechat.ai/docs)
-  - **Blog:** [librechat.ai/blog](https://librechat.ai/blog)
+
+- **Website:** [librechat.ai](https://librechat.ai)
+- **Documentation:** [librechat.ai/docs](https://librechat.ai/docs)
+- **Blog:** [librechat.ai/blog](https://librechat.ai/blog)
 
 ---
 
 ## 📝 Changelog
 
 Keep up with the latest updates by visiting the releases page and notes:
+
 - [Releases](https://github.com/danny-avila/LibreChat/releases)
-- [Changelog](https://www.librechat.ai/changelog) 
+- [Changelog](https://www.librechat.ai/changelog)
 
 **⚠️ Please consult the [changelog](https://www.librechat.ai/changelog) for breaking changes before updating.**
 

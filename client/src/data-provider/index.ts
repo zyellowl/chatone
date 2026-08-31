@@ -11,6 +11,7 @@ export * from './Projects';
 export * from './Tools';
 export * from './connection';
 export * from './Favorites';
+export * from './Usage';
 export * from './mutations';
 export * from './prompts';
 export * from './queries';

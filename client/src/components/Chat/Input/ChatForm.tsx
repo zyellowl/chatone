@@ -41,6 +41,7 @@ import SendButton from './SendButton';
 import EditBadges from './EditBadges';
 import BadgeRow from './BadgeRow';
 import Mention from './Mention';
+import ModelSelector from '../Menus/Endpoints/ModelSelector';
 import store from '~/store';
 
 interface ChatFormProps {
@@ -247,7 +248,7 @@ const ChatForm = memo(function ChatForm({
     <form
       onSubmit={methods.handleSubmit(submitMessage)}
       className={cn(
-        'mx-auto flex w-full flex-row gap-3 transition-[max-width] duration-300 sm:px-2',
+        'personal-claude-form mx-auto flex w-full flex-row gap-3 transition-[max-width] duration-300 sm:px-2',
         maximizeChatSpace ? 'max-w-full' : 'md:max-w-3xl xl:max-w-4xl',
         centerFormOnLanding &&
           (conversationId == null || conversationId === Constants.NEW_CONVO) &&
@@ -284,6 +285,7 @@ const ChatForm = memo(function ChatForm({
             agentId={conversation?.agent_id}
           />
           <div
+            data-testid="chat-composer"
             onClick={handleContainerClick}
             className={cn(
               'relative flex w-full flex-grow flex-col overflow-hidden rounded-t-3xl border pb-4 text-text-primary transition-all duration-200 sm:rounded-3xl sm:pb-0',
@@ -374,6 +376,9 @@ const ChatForm = memo(function ChatForm({
                   setFiles={setFiles}
                   setFilesLoading={setFilesLoading}
                 />
+              </div>
+              <div className="personal-composer-model-selector">
+                <ModelSelector startupConfig={startupConfig} />
               </div>
               <BadgeRow
                 showEphemeralBadges={

@@ -63,13 +63,13 @@ export default function SettingsDialog({ open, onOpenChange }: TDialogProps) {
           <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
             <DialogPanel
               className={cn(
-                'flex max-h-[85vh] w-full flex-col overflow-hidden rounded-2xl bg-background shadow-2xl',
+                'chatone-settings flex max-h-[85vh] w-full flex-col overflow-hidden rounded-2xl bg-background shadow-2xl',
                 'md:h-[85vh] md:w-[900px]',
               )}
             >
               <DialogTitle
                 as="div"
-                className="flex items-center justify-between border-b border-border-light p-5"
+                className="chatone-settings-header flex items-center justify-between border-b border-border-light p-5"
               >
                 {inDetail ? (
                   <button
@@ -101,7 +101,7 @@ export default function SettingsDialog({ open, onOpenChange }: TDialogProps) {
                 value={effectiveTab}
                 onValueChange={(v) => setActiveTab(v as SettingsTab)}
                 orientation="vertical"
-                className="flex flex-1 flex-col gap-4 overflow-hidden p-5 md:flex-row md:gap-6"
+                className="chatone-settings-body flex flex-1 flex-col gap-4 overflow-hidden p-5 md:flex-row md:gap-6"
               >
                 {showSidebar && (
                   <Sidebar

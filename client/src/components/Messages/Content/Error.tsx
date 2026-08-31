@@ -7,6 +7,44 @@ import CodeBlock from './CodeBlock';
 
 const localizedErrorPrefix = 'com_error';
 
+const getFriendlyGatewayError = (message: string, localize: LocalizeFunction) => {
+  const normalized = message.toLowerCase();
+
+  if (
+    normalized.includes('reject_no_credit') ||
+    normalized.includes('balance greater than 0') ||
+    normalized.includes('insufficient balance')
+  ) {
+    return localize('com_error_zenmux_no_credit');
+  }
+  if (
+    normalized.includes('invalid api key') ||
+    normalized.includes('authentication_error') ||
+    /\b401\b/.test(normalized)
+  ) {
+    return localize('com_error_zenmux_auth');
+  }
+  if (normalized.includes('rate_limit') || /\b429\b/.test(normalized)) {
+    return localize('com_error_zenmux_rate_limit');
+  }
+  if (
+    normalized.includes('model_not_found') ||
+    normalized.includes('model does not exist') ||
+    normalized.includes('model is not available')
+  ) {
+    return localize('com_error_zenmux_model_unavailable');
+  }
+  if (
+    normalized.includes('fetch failed') ||
+    normalized.includes('econnreset') ||
+    normalized.includes('stream disconnected')
+  ) {
+    return localize('com_error_zenmux_connection');
+  }
+
+  return null;
+};
+
 type TConcurrent = {
   limit: number;
 };
@@ -128,6 +166,12 @@ const Error = ({ text }: { text: string }) => {
   const localize = useLocalize();
   const jsonString = extractJson(text);
   const errorMessage = text.length > 512 && !jsonString ? text.slice(0, 512) + '...' : text;
+  const friendlyGatewayError = getFriendlyGatewayError(errorMessage, localize);
+
+  if (friendlyGatewayError) {
+    return friendlyGatewayError;
+  }
+
   const defaultResponse = `Something went wrong. Here's the specific error message we encountered: ${errorMessage}`;
 
   if (!isJson(jsonString)) {

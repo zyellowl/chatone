@@ -1,0 +1,338 @@
+version: 1.3.13
+cache: true
+
+interface:
+  customWelcome: 'How can I help you today?'
+  fileSearch: false
+  modelSelect: true
+  parameters: true
+  presets: false
+  prompts:
+    use: true
+    create: true
+    share: false
+    public: false
+  bookmarks: true
+  multiConvo: false
+  agents:
+    use: false
+    create: false
+    share: false
+    public: false
+  marketplace:
+    use: false
+  fileCitations: true
+  defaultPinnedTools:
+    - artifacts
+
+modelSpecs:
+  enforce: true
+  prioritize: true
+  list:
+    # zenmux-favorites:start
+    - name: chatgpt-subscription-gpt-5-6-sol
+      label: 'GPT 5.6 Sol'
+      description: 'Best overall capability'
+      softDefault: true
+      showIconInMenu: false
+      artifacts: true
+      preset:
+        endpoint: 'ChatGPT Subscription'
+        model: 'gpt-5.6-sol'
+        maxContextTokens: 244800
+    - name: chatgpt-subscription-gpt-5-6-terra
+      label: 'GPT 5.6 Terra'
+      description: 'Balanced speed and reasoning'
+      showIconInMenu: false
+      artifacts: true
+      preset:
+        endpoint: 'ChatGPT Subscription'
+        model: 'gpt-5.6-terra'
+        maxContextTokens: 244800
+    - name: chatgpt-subscription-gpt-5-6-luna
+      label: 'GPT 5.6 Luna'
+      description: 'Fast and efficient'
+      showIconInMenu: false
+      artifacts: true
+      preset:
+        endpoint: 'ChatGPT Subscription'
+        model: 'gpt-5.6-luna'
+        maxContextTokens: 244800
+    - name: chatgpt-subscription-gpt-5-5
+      label: 'GPT 5.5'
+      description: 'Previous frontier model'
+      showIconInMenu: false
+      artifacts: true
+      preset:
+        endpoint: 'ChatGPT Subscription'
+        model: 'gpt-5.5'
+        maxContextTokens: 244800
+    - name: chatgpt-subscription-gpt-5-4
+      label: 'GPT 5.4'
+      description: 'Strong general reasoning'
+      showIconInMenu: false
+      artifacts: true
+      preset:
+        endpoint: 'ChatGPT Subscription'
+        model: 'gpt-5.4'
+        maxContextTokens: 244800
+    - name: chatgpt-subscription-gpt-5-4-mini
+      label: 'GPT 5.4 mini'
+      description: 'Fast everyday tasks'
+      showIconInMenu: false
+      artifacts: true
+      preset:
+        endpoint: 'ChatGPT Subscription'
+        model: 'gpt-5.4-mini'
+        maxContextTokens: 244800
+    - name: chatgpt-subscription-gpt-5-3-codex-spark
+      label: 'GPT 5.3 Codex Spark'
+      description: 'Fast coding tasks'
+      showIconInMenu: false
+      artifacts: true
+      preset:
+        endpoint: 'ChatGPT Subscription'
+        model: 'gpt-5.3-codex-spark'
+        maxContextTokens: 115200
+    # zenmux-favorites:end
+
+fileConfig:
+  endpoints:
+    default:
+      fileLimit: 10
+      fileSizeLimit: 25
+      totalSizeLimit: 100
+    ZenMux:
+      fileLimit: 10
+      fileSizeLimit: 25
+      totalSizeLimit: 100
+    ChatGPT Subscription:
+      fileLimit: 10
+      fileSizeLimit: 25
+      totalSizeLimit: 100
+  serverFileSizeLimit: 100
+  avatarSizeLimit: 2
+  clientImageResize:
+    enabled: false
+
+endpoints:
+  all:
+    streamRate: 8
+    titleTiming: immediate
+  custom:
+    - name: ZenMux
+      provider: anthropic
+      apiKey: '${ZENMUX_API_KEY}'
+      baseURL: '${ZENMUX_BASE_URL}'
+      models:
+        default:
+          # zenmux-catalog:start
+          - 'anthropic/claude-fable-5'
+          - 'anthropic/claude-haiku-4.5'
+          - 'anthropic/claude-opus-4'
+          - 'anthropic/claude-opus-4.1'
+          - 'anthropic/claude-opus-4.5'
+          - 'anthropic/claude-opus-4.6'
+          - 'anthropic/claude-opus-4.7'
+          - 'anthropic/claude-opus-4.8'
+          - 'anthropic/claude-opus-5'
+          - 'anthropic/claude-sonnet-4'
+          - 'anthropic/claude-sonnet-4.5'
+          - 'anthropic/claude-sonnet-4.6'
+          - 'anthropic/claude-sonnet-5'
+          - 'baidu/ernie-5.0-thinking-preview'
+          - 'baidu/ernie-5.1'
+          - 'baidu/ernie-x1.1-preview'
+          - 'bytedance/doubao-seed-1.8'
+          - 'bytedance/doubao-seed-2.0-code'
+          - 'bytedance/doubao-seed-2.0-lite'
+          - 'bytedance/doubao-seed-2.0-mini'
+          - 'bytedance/doubao-seed-2.0-pro'
+          - 'bytedance/doubao-seed-2.1-pro'
+          - 'bytedance/doubao-seed-2.1-turbo'
+          - 'bytedance/doubao-seed-character'
+          - 'bytedance/doubao-seed-evolving'
+          - 'deepseek/deepseek-v3.2'
+          - 'deepseek/deepseek-v3.2-exp'
+          - 'deepseek/deepseek-v4-flash'
+          - 'deepseek/deepseek-v4-flash-vision-exp'
+          - 'deepseek/deepseek-v4-flash-vision-exp-free'
+          - 'deepseek/deepseek-v4-pro'
+          - 'dots-studio/dots3-note-prev'
+          - 'google/gemini-2.5-flash'
+          - 'google/gemini-2.5-flash-lite'
+          - 'google/gemini-2.5-pro'
+          - 'google/gemini-3-flash-preview'
+          - 'google/gemini-3.1-flash-lite'
+          - 'google/gemini-3.1-pro-preview'
+          - 'google/gemini-3.5-flash'
+          - 'google/gemini-3.5-flash-lite'
+          - 'google/gemini-3.6-flash'
+          - 'google/gemini-3.7-flash'
+          - 'google/gemma-4-26b-a4b-it'
+          - 'google/gemma-4-31b-it'
+          - 'inclusionai/ling-2.6-1t'
+          - 'inclusionai/ling-2.6-flash'
+          - 'inclusionai/ling-3.0-flash'
+          - 'inclusionai/ling-3.0-tiny'
+          - 'inclusionai/ring-2.6-1t'
+          - 'kuaishou/kat-coder-air-v2.5'
+          - 'kuaishou/kat-coder-pro-v2'
+          - 'kuaishou/kat-coder-pro-v2.5'
+          - 'meituan/longcat-2.0'
+          - 'meta/muse-spark-1.1'
+          - 'meta/muse-spark-1.2'
+          - 'mindai/macaron-v1-tall'
+          - 'mindai/macaron-v1-venti'
+          - 'minimax/minimax-m2'
+          - 'minimax/minimax-m2.1'
+          - 'minimax/minimax-m2.5'
+          - 'minimax/minimax-m2.5-lightning'
+          - 'minimax/minimax-m2.7'
+          - 'minimax/minimax-m2.7-highspeed'
+          - 'minimax/minimax-m3'
+          - 'mistralai/mistral-large-2512'
+          - 'moonshotai/kimi-k2.5'
+          - 'moonshotai/kimi-k2.6'
+          - 'moonshotai/kimi-k2.7-code'
+          - 'moonshotai/kimi-k2.7-code-highspeed'
+          - 'moonshotai/kimi-k3'
+          - 'nex-agi/nex-n2-pro'
+          - 'openai/chat-latest'
+          - 'openai/gpt-5'
+          - 'openai/gpt-5-codex'
+          - 'openai/gpt-5.1'
+          - 'openai/gpt-5.1-chat'
+          - 'openai/gpt-5.1-codex'
+          - 'openai/gpt-5.1-codex-mini'
+          - 'openai/gpt-5.2'
+          - 'openai/gpt-5.2-codex'
+          - 'openai/gpt-5.2-pro'
+          - 'openai/gpt-5.3-chat'
+          - 'openai/gpt-5.3-codex'
+          - 'openai/gpt-5.4'
+          - 'openai/gpt-5.4-mini'
+          - 'openai/gpt-5.4-nano'
+          - 'openai/gpt-5.4-pro'
+          - 'openai/gpt-5.5'
+          - 'openai/gpt-5.5-pro'
+          - 'openai/gpt-5.6-luna'
+          - 'openai/gpt-5.6-sol'
+          - 'openai/gpt-5.6-terra'
+          - 'qwen/qwen3-coder-plus'
+          - 'qwen/qwen3-max'
+          - 'qwen/qwen3.5-flash'
+          - 'qwen/qwen3.5-plus'
+          - 'qwen/qwen3.6-flash'
+          - 'qwen/qwen3.6-max-preview'
+          - 'qwen/qwen3.6-plus'
+          - 'qwen/qwen3.7-flash'
+          - 'qwen/qwen3.7-max'
+          - 'qwen/qwen3.7-plus'
+          - 'qwen/qwen3.8-2.4t-a95b'
+          - 'qwen/qwen3.8-27b'
+          - 'qwen/qwen3.8-max'
+          - 'sapiens-ai/agnes-2.0-flash'
+          - 'sapiens-ai/agnes-2.5-flash'
+          - 'sapiens-ai/agnes-2.5-pro'
+          - 'stepfun/step-3.5-flash'
+          - 'stepfun/step-3.7-flash'
+          - 'tencent/hy3'
+          - 'tencent/hy3-preview'
+          - 'x-ai/grok-4.2-fast'
+          - 'x-ai/grok-4.2-fast-non-reasoning'
+          - 'x-ai/grok-4.3'
+          - 'x-ai/grok-4.5'
+          - 'x-ai/grok-4.6'
+          - 'x-ai/grok-build-0.1'
+          - 'xiaomi/mimo-v2.5'
+          - 'xiaomi/mimo-v2.5-pro'
+          - 'z-ai/glm-4.5'
+          - 'z-ai/glm-4.5-air'
+          - 'z-ai/glm-4.6'
+          - 'z-ai/glm-4.6v'
+          - 'z-ai/glm-4.6v-flash'
+          - 'z-ai/glm-4.6v-flash-free'
+          - 'z-ai/glm-4.7'
+          - 'z-ai/glm-4.7-flash-free'
+          - 'z-ai/glm-4.7-flashx'
+          - 'z-ai/glm-5'
+          - 'z-ai/glm-5-turbo'
+          - 'z-ai/glm-5.1'
+          - 'z-ai/glm-5.2'
+          - 'z-ai/glm-5.3'
+          - 'z-ai/glm-5v-turbo'
+          # zenmux-catalog:end
+        fetch: false
+      titleConvo: true
+      titleModel: openai/gpt-5.6-luna
+      titleMethod: completion
+      titleMessageRole: user
+      modelDisplayLabel: ZenMux
+      # LibreChat does not yet know ZenMux's provider-prefixed model IDs.
+      # Supplying the favorite models' current metadata prevents the generic
+      # 1K context fallback and also keeps local usage estimates meaningful.
+      tokenConfig:
+        'anthropic/claude-sonnet-5':
+          prompt: 2
+          completion: 10
+          context: 1000000
+          cacheRead: 0.2
+          cacheWrite: 2.5
+        'anthropic/claude-opus-5':
+          prompt: 5
+          completion: 25
+          context: 1000000
+          cacheRead: 0.5
+          cacheWrite: 6.25
+        'google/gemini-3.1-pro-preview':
+          prompt: 2
+          completion: 12
+          context: 1048576
+          cacheRead: 0.2
+          cacheWrite: 4.5
+        'openai/gpt-5.6-sol':
+          prompt: 5
+          completion: 30
+          context: 1050000
+          cacheRead: 0.5
+          cacheWrite: 6.25
+      customParams:
+        defaultParamsEndpoint: anthropic
+        # ZenMux implements Anthropic's native server-side Web Search tool.
+        # Keep the tool available by default and let the selected model decide
+        # whether a prompt needs live information. Users can still turn it off
+        # per conversation from the Parameters panel.
+        paramDefinitions:
+          - key: web_search
+            label: com_ui_web_search
+            labelCode: true
+            description: com_endpoint_anthropic_use_web_search
+            descriptionCode: true
+            type: boolean
+            default: true
+            component: switch
+            optionType: conversation
+            showDefault: false
+            columnSpan: 2
+    - name: ChatGPT Subscription
+      apiKey: 'local-chatgpt-subscription'
+      baseURL: 'http://host.docker.internal:4317/v1'
+      models:
+        default:
+          - 'gpt-5.6-sol'
+          - 'gpt-5.6-terra'
+          - 'gpt-5.6-luna'
+          - 'gpt-5.5'
+          - 'gpt-5.4'
+          - 'gpt-5.4-mini'
+          - 'gpt-5.3-codex-spark'
+        fetch: true
+      titleConvo: true
+      titleModel: 'gpt-5.6-luna'
+      titleMethod: completion
+      titleMessageRole: user
+      modelDisplayLabel: 'ChatGPT Subscription'
+      dropParams:
+        - frequency_penalty
+        - presence_penalty

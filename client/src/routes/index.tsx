@@ -51,6 +51,11 @@ const loadProjectWorkspace = () =>
     Component: m.ProjectWorkspace,
   }));
 
+const loadUsagePage = () =>
+  import('~/custom/usage/UsagePage').then((m) => ({
+    Component: m.default,
+  }));
+
 const baseEl = document.querySelector('base');
 const baseHref = baseEl?.getAttribute('href') || '/';
 
@@ -133,6 +138,10 @@ export const router = createBrowserRouter(
             {
               path: 'search',
               element: <Search />,
+            },
+            {
+              path: 'usage',
+              lazy: loadUsagePage,
             },
             {
               path: 'prompts',

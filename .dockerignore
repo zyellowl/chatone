@@ -5,11 +5,15 @@
 **/.DS_Store
 **/.vscode
 **/node_modules
+custom/macos/.build
+custom/ios/.build
+custom/ios/ChatOne/Assets.xcassets/AppIcon.appiconset/*.png
 
 # Specific patterns to ignore
 data-node
 meili_data*
 librechat*
+!librechat.yaml
 Dockerfile*
 docs
 

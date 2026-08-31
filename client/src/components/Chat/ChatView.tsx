@@ -93,19 +93,19 @@ function ChatView({ index = 0, project }: { index?: number; project?: TChatProje
   const chatFormPlaceholder =
     isProjectLandingPage && project
       ? localize('com_ui_new_chat_in_project', { name: project.name })
-      : undefined;
+      : localize('com_ui_chat_input_placeholder');
 
   return (
     <ChatFormProvider {...methods}>
       <ChatContext.Provider value={chatHelpers}>
         <AddedChatContext.Provider value={addedChatHelpers}>
           <Presentation>
-            <div className="relative flex h-full w-full flex-col">
+            <div className="personal-claude-chat relative flex h-full w-full flex-col">
               <Header />
               <>
                 <div
                   className={cn(
-                    'flex flex-col',
+                    'personal-claude-thread flex flex-col',
                     isLandingPage
                       ? 'flex-1 items-center justify-end sm:justify-center'
                       : 'h-full overflow-y-auto',
@@ -114,7 +114,7 @@ function ChatView({ index = 0, project }: { index?: number; project?: TChatProje
                   {content}
                   <div
                     className={cn(
-                      'w-full',
+                      'personal-claude-composer-wrap w-full',
                       isLandingPage && 'max-w-3xl transition-all duration-200 xl:max-w-4xl',
                     )}
                   >
