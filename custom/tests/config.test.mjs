@@ -157,6 +157,17 @@ test('the Claude-like navigation keeps conversation search enabled', async () =>
   assert.match(composeOverride, /SEARCH: 'true'/);
 });
 
+test('the personal website studio stays inside the native ChatOne window', async () => {
+  const workspace = await read('client/src/custom/workspace/WorkspacePage.tsx');
+  const launcher = await read('custom/macos/Sources/main.swift');
+  assert.match(workspace, /href="http:\/\/127\.0\.0\.1:5174\/studio\/content\/home"/);
+  assert.doesNotMatch(
+    workspace,
+    /href="http:\/\/127\.0\.0\.1:5174\/studio\/content\/home"[^>]*target="_blank"/,
+  );
+  assert.match(launcher, /let localHosts = Set\(\["127\.0\.0\.1", "localhost"\]\)/);
+});
+
 test('the ChatOne composer omits advanced tool and artifact controls', async () => {
   const badgeRow = await read('client/src/components/Chat/Input/BadgeRow.tsx');
   assert.doesNotMatch(badgeRow, /<ToolsDropdown\s*\/>/);

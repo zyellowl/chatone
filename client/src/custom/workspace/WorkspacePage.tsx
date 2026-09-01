@@ -127,7 +127,7 @@ export default function WorkspacePage() {
             </div>
           </div>
           <div className="personal-workspace-site-actions">
-            <a href="http://127.0.0.1:5174/studio/content/home" target="_blank" rel="noreferrer">
+            <a href="http://127.0.0.1:5174/studio/content/home">
               <PenLine aria-hidden="true" />
               {localize('com_workspace_manage_site')}
             </a>
