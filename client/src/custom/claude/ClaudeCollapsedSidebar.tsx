@@ -1,6 +1,6 @@
 import { lazy, memo, Suspense } from 'react';
 import { Link } from 'react-router-dom';
-import { MessageSquare, PanelLeftOpen, SquarePen } from 'lucide-react';
+import { LayoutDashboard, MessageSquare, PanelLeftOpen, SquarePen } from 'lucide-react';
 import { useLocalize } from '~/hooks';
 
 const AccountSettings = lazy(() => import('~/components/Nav/AccountSettings'));
@@ -24,6 +24,13 @@ function ClaudeCollapsedSidebar({ onExpand }: { onExpand: () => void }) {
         aria-label={localize('com_ui_new_chat')}
       >
         <SquarePen aria-hidden="true" />
+      </Link>
+      <Link
+        to="/workspace"
+        className="personal-claude-icon-button mt-1"
+        aria-label={localize('com_workspace_nav')}
+      >
+        <LayoutDashboard aria-hidden="true" />
       </Link>
       <button
         type="button"

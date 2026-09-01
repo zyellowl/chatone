@@ -7,6 +7,7 @@ import {
   BarChart3,
   ChevronDown,
   FolderKanban,
+  LayoutDashboard,
   MessageSquare,
   PanelLeftClose,
   Search,
@@ -45,6 +46,11 @@ function ClaudeSidebarShell({ links, onCollapse }: { links: NavLink[]; onCollaps
   const openChats = useCallback(() => {
     setActive(DEFAULT_PANEL);
     navigate('/c/new');
+  }, [navigate, setActive]);
+
+  const openWorkspace = useCallback(() => {
+    setActive(DEFAULT_PANEL);
+    navigate('/workspace');
   }, [navigate, setActive]);
 
   const openSearch = useCallback(() => {
@@ -88,6 +94,14 @@ function ClaudeSidebarShell({ links, onCollapse }: { links: NavLink[]; onCollaps
         <button type="button" className="personal-claude-new-chat" onClick={startNewChat}>
           <SquarePen aria-hidden="true" />
           <span>{localize('com_ui_new_chat')}</span>
+        </button>
+        <button
+          type="button"
+          className={cn('personal-claude-nav-row', location.pathname === '/workspace' && 'active')}
+          onClick={openWorkspace}
+        >
+          <LayoutDashboard aria-hidden="true" />
+          <span>{localize('com_workspace_nav')}</span>
         </button>
         <button type="button" className="personal-claude-nav-row" onClick={openSearch}>
           <Search aria-hidden="true" />

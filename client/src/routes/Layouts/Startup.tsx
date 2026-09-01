@@ -35,7 +35,7 @@ export default function StartupLayout({ isAuthenticated }: { isAuthenticated?: b
         new URLSearchParams(window.location.search).has(REDIRECT_PARAM) ||
         sessionStorage.getItem(SESSION_KEY) != null;
       if (!hasPendingRedirect) {
-        navigate('/c/new', { replace: true });
+        navigate('/workspace', { replace: true });
       }
     }
     if (data) {
