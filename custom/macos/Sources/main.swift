@@ -111,22 +111,9 @@ private final class ServiceController {
       return .failure(ServiceError.dockerUnavailable)
     }
 
-    if run(docker, arguments: ["info"], timeout: 8) != 0 {
-      log.append("Docker is not ready; asking Docker Desktop to launch")
-      _ = run(
-        URL(fileURLWithPath: "/usr/bin/open"),
-        arguments: ["-gja", "Docker"],
-        timeout: 8
-      )
-      DispatchQueue.main.async { status("正在等待 Docker Desktop…") }
-
-      let dockerReady = waitUntil(timeout: 75) {
-        self.run(docker, arguments: ["info"], timeout: 8) == 0
-      }
-      if !dockerReady {
-        log.append("Docker did not become ready before timeout")
-        return .failure(ServiceError.dockerUnavailable)
-      }
+    if !ensureDockerReady(docker, status: status) {
+      log.append("Docker did not become ready before timeout")
+      return .failure(ServiceError.dockerUnavailable)
     }
 
     DispatchQueue.main.async { status("正在启动 ChatOne…") }
@@ -150,6 +137,50 @@ private final class ServiceController {
 
     log.append("ChatOne service is ready")
     return .success(())
+  }
+
+  /// Docker Desktop can leave its port proxy running while the engine itself
+  /// stops answering. Opening the already-running app does not repair that
+  /// state, so try a normal launch first and then perform one clean relaunch.
+  private func ensureDockerReady(
+    _ docker: URL,
+    status: @escaping (String) -> Void
+  ) -> Bool {
+    if run(docker, arguments: ["info"], timeout: 8) == 0 {
+      return true
+    }
+
+    log.append("Docker is not ready; asking Docker Desktop to launch")
+    DispatchQueue.main.async { status("正在等待 Docker Desktop…") }
+    _ = run(
+      URL(fileURLWithPath: "/usr/bin/open"),
+      arguments: ["-gja", "Docker"],
+      timeout: 8
+    )
+
+    if waitUntil(timeout: 20, condition: { self.dockerIsReady(docker) }) {
+      return true
+    }
+
+    log.append("Docker engine stayed unresponsive; relaunching Docker Desktop")
+    DispatchQueue.main.async { status("正在恢复 Docker Desktop…") }
+    _ = run(
+      URL(fileURLWithPath: "/usr/bin/osascript"),
+      arguments: ["-e", "tell application \"Docker\" to quit"],
+      timeout: 12
+    )
+    Thread.sleep(forTimeInterval: 2)
+    _ = run(
+      URL(fileURLWithPath: "/usr/bin/open"),
+      arguments: ["-gja", "Docker"],
+      timeout: 8
+    )
+
+    return waitUntil(timeout: 75, condition: { self.dockerIsReady(docker) })
+  }
+
+  private func dockerIsReady(_ docker: URL) -> Bool {
+    run(docker, arguments: ["info"], timeout: 4) == 0
   }
 
   private func synchronousHealthCheck() -> Bool {
@@ -320,6 +351,10 @@ private final class MainWindowController: NSWindowController, WKNavigationDelega
   private let serviceController = ServiceController()
   private let statusView = StatusView()
   private let webView: WKWebView
+  private var healthTimer: Timer?
+  private var consecutiveHealthFailures = 0
+  private var isRecoveringService = false
+  private var reconnectURL: URL?
 
   init() {
     let webConfiguration = WKWebViewConfiguration()
@@ -365,13 +400,24 @@ private final class MainWindowController: NSWindowController, WKNavigationDelega
       statusView.topAnchor.constraint(equalTo: contentView.topAnchor),
       statusView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
     ])
+
+    startHealthMonitor()
   }
 
   required init?(coder: NSCoder) {
     nil
   }
 
+  deinit {
+    healthTimer?.invalidate()
+  }
+
   func connect() {
+    guard !isRecoveringService else { return }
+    isRecoveringService = true
+    if let currentURL = webView.url {
+      reconnectURL = currentURL
+    }
     statusView.isHidden = false
     statusView.setStatus("正在连接本地服务…")
     webView.isHidden = true
@@ -399,9 +445,13 @@ private final class MainWindowController: NSWindowController, WKNavigationDelega
       },
       completion: { [weak self] result in
         guard let self else { return }
+        self.isRecoveringService = false
         switch result {
         case .success:
-          self.webView.load(self.freshRequest(for: self.serviceController.serverURL))
+          self.consecutiveHealthFailures = 0
+          let destination = self.reconnectURL ?? self.serviceController.serverURL
+          self.reconnectURL = nil
+          self.webView.load(self.freshRequest(for: destination))
         case .failure(let error):
           self.statusView.setError(error.localizedDescription)
         }
@@ -410,12 +460,30 @@ private final class MainWindowController: NSWindowController, WKNavigationDelega
   }
 
   func reload() {
-    if webView.url == nil {
-      connect()
-      return
+    connect()
+  }
+
+  private func startHealthMonitor() {
+    healthTimer?.invalidate()
+    healthTimer = Timer.scheduledTimer(withTimeInterval: 12, repeats: true) { [weak self] _ in
+      self?.checkBackgroundHealth()
     }
-    guard let url = webView.url else { return }
-    webView.load(freshRequest(for: url))
+  }
+
+  private func checkBackgroundHealth() {
+    guard !isRecoveringService else { return }
+    serviceController.checkHealth { [weak self] isHealthy in
+      guard let self else { return }
+      if isHealthy {
+        self.consecutiveHealthFailures = 0
+        return
+      }
+
+      self.consecutiveHealthFailures += 1
+      if self.consecutiveHealthFailures >= 2 {
+        self.connect()
+      }
+    }
   }
 
   func openNewChat() {
@@ -457,6 +525,11 @@ private final class MainWindowController: NSWindowController, WKNavigationDelega
     statusView.isHidden = false
     statusView.setError("页面连接中断，请检查本地服务后重试。")
     webView.isHidden = true
+    serviceController.checkHealth { [weak self] isHealthy in
+      if !isHealthy {
+        self?.connect()
+      }
+    }
   }
 
   func webView(

@@ -171,6 +171,9 @@ test('macOS startup cannot hang forever on Docker or a throttled bridge', async 
   assert.match(launcher, /arguments: \["info"\], timeout: 8/);
   assert.match(launcher, /Command timed out after/);
   assert.match(launcher, /kill\(process\.processIdentifier, SIGKILL\)/);
+  assert.match(launcher, /tell application \\"Docker\\" to quit/);
+  assert.match(launcher, /consecutiveHealthFailures >= 2/);
+  assert.match(launcher, /Timer\.scheduledTimer\(withTimeInterval: 12/);
   assert.match(launcher, /reloadIgnoringLocalAndRemoteCacheData/);
   assert.match(launcher, /chatone_refresh/);
   assert.match(macBuild, /AppIcon-troll\.png/);

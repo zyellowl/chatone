@@ -14,8 +14,11 @@ be opened directly or copied to `/Applications`.
 
 At launch, the app checks `http://127.0.0.1:3080/api/config`. If LibreChat is not available, it
 starts Docker Desktop when needed, then starts the existing `chat-mongodb`, `chat-meilisearch`, and
-`LibreChat` containers. Run the repository's Docker setup once before using the app for the first
-time. This avoids granting the app access to the source directory or secret files.
+`ChatOne` containers. If Docker Desktop still owns the local port but its engine has stopped
+responding, ChatOne performs one clean Docker Desktop relaunch. While the app is open it also checks
+the local service periodically and reconnects after two consecutive failures. Run the repository's
+Docker setup once before using the app for the first time. This avoids granting the app access to
+the source directory or secret files.
 
 Launcher diagnostics are written to `~/Library/Logs/ChatOne/launcher.log`. LibreChat and ZenMux
 request diagnostics remain in the existing Docker logs.
