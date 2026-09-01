@@ -6,6 +6,7 @@ private enum AppConstants {
   static let appName = "ChatOne"
   static let defaultServerURL = URL(string: "http://127.0.0.1:3080/")!
   static let healthPath = "api/config"
+  static let workspacePath = "workspace"
 }
 
 private enum ServiceError: LocalizedError {
@@ -57,6 +58,9 @@ private final class LauncherLog {
 
 private final class ServiceController {
   let serverURL: URL
+  var workspaceURL: URL {
+    serverURL.appendingPathComponent(AppConstants.workspacePath)
+  }
 
   private let log = LauncherLog()
   private let session: URLSession
@@ -449,7 +453,7 @@ private final class MainWindowController: NSWindowController, WKNavigationDelega
         switch result {
         case .success:
           self.consecutiveHealthFailures = 0
-          let destination = self.reconnectURL ?? self.serviceController.serverURL
+          let destination = self.reconnectURL ?? self.serviceController.workspaceURL
           self.reconnectURL = nil
           self.webView.load(self.freshRequest(for: destination))
         case .failure(let error):
@@ -489,6 +493,10 @@ private final class MainWindowController: NSWindowController, WKNavigationDelega
   func openNewChat() {
     let url = serviceController.serverURL.appendingPathComponent("c/new")
     webView.load(freshRequest(for: url))
+  }
+
+  func openWorkspace() {
+    webView.load(freshRequest(for: serviceController.workspaceURL))
   }
 
   /// Navigation requests bypass HTTP/PWA caches while cookies, local storage,
@@ -587,6 +595,10 @@ private final class AppDelegate: NSObject, NSApplicationDelegate {
     mainWindowController?.openNewChat()
   }
 
+  @objc private func showWorkspace() {
+    mainWindowController?.openWorkspace()
+  }
+
   private func configureMenus() {
     let mainMenu = NSMenu()
 
@@ -608,6 +620,14 @@ private final class AppDelegate: NSObject, NSApplicationDelegate {
 
     let fileMenuItem = NSMenuItem()
     let fileMenu = NSMenu(title: "文件")
+    let workspaceItem = NSMenuItem(
+      title: "打开工作台",
+      action: #selector(showWorkspace),
+      keyEquivalent: "1"
+    )
+    workspaceItem.target = self
+    fileMenu.addItem(workspaceItem)
+    fileMenu.addItem(.separator())
     let newChatItem = NSMenuItem(title: "新建对话", action: #selector(newChat), keyEquivalent: "n")
     newChatItem.target = self
     fileMenu.addItem(newChatItem)

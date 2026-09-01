@@ -20,6 +20,9 @@ the local service periodically and reconnects after two consecutive failures. Ru
 Docker setup once before using the app for the first time. This avoids granting the app access to
 the source directory or secret files.
 
+The first window opens the personal workspace at `/workspace`. Use **File → Open Workspace**
+(`⌘1`) to return there from a conversation without leaving the native app.
+
 Launcher diagnostics are written to `~/Library/Logs/ChatOne/launcher.log`. LibreChat and ZenMux
 request diagnostics remain in the existing Docker logs.
 
