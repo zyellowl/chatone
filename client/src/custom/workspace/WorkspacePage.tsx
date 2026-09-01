@@ -127,10 +127,10 @@ export default function WorkspacePage() {
             </div>
           </div>
           <div className="personal-workspace-site-actions">
-            <a href="http://127.0.0.1:5174/studio/content/home">
+            <Link to="/workspace/site">
               <PenLine aria-hidden="true" />
               {localize('com_workspace_manage_site')}
-            </a>
+            </Link>
             <a className="primary" href="https://jojoo.cc/" target="_blank" rel="noreferrer">
               <ExternalLink aria-hidden="true" />
               {localize('com_workspace_view_site')}

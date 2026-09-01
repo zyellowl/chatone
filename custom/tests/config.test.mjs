@@ -157,15 +157,17 @@ test('the Claude-like navigation keeps conversation search enabled', async () =>
   assert.match(composeOverride, /SEARCH: 'true'/);
 });
 
-test('the personal website studio stays inside the native ChatOne window', async () => {
+test('the personal website studio is a native ChatOne workspace route', async () => {
   const workspace = await read('client/src/custom/workspace/WorkspacePage.tsx');
-  const launcher = await read('custom/macos/Sources/main.swift');
-  assert.match(workspace, /href="http:\/\/127\.0\.0\.1:5174\/studio\/content\/home"/);
-  assert.doesNotMatch(
-    workspace,
-    /href="http:\/\/127\.0\.0\.1:5174\/studio\/content\/home"[^>]*target="_blank"/,
-  );
-  assert.match(launcher, /let localHosts = Set\(\["127\.0\.0\.1", "localhost"\]\)/);
+  const routes = await read('client/src/routes/index.tsx');
+  const studio = await read('client/src/custom/site/SiteStudioPage.tsx');
+  const api = await read('client/src/data-provider/Jojoo/api.ts');
+  assert.match(workspace, /<Link to="\/workspace\/site">/);
+  assert.match(routes, /path: 'workspace\/site\/:section\?'/);
+  assert.match(studio, /<ProfileEditor/);
+  assert.match(studio, /<BlogEditor/);
+  assert.match(api, /const JOJOO_API_ORIGIN = 'http:\/\/127\.0\.0\.1:8788'/);
+  assert.doesNotMatch(workspace, /127\.0\.0\.1:5174/);
 });
 
 test('the ChatOne composer omits advanced tool and artifact controls', async () => {

@@ -67,8 +67,7 @@ describe('WorkspacePage', () => {
 
     expect(screen.getByRole('heading', { name: 'com_workspace_welcome:Jojo' })).toBeInTheDocument();
     const manageSite = screen.getByRole('link', { name: /com_workspace_manage_site/ });
-    expect(manageSite).toHaveAttribute('href', 'http://127.0.0.1:5174/studio/content/home');
-    expect(manageSite).not.toHaveAttribute('target');
+    expect(manageSite).toHaveAttribute('href', '/workspace/site');
     expect(screen.getByRole('link', { name: /com_workspace_view_site/ })).toHaveAttribute(
       'href',
       'https://jojoo.cc/',

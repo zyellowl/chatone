@@ -61,6 +61,11 @@ const loadWorkspacePage = () =>
     Component: m.default,
   }));
 
+const loadSiteStudioPage = () =>
+  import('~/custom/site/SiteStudioPage').then((m) => ({
+    Component: m.default,
+  }));
+
 const baseEl = document.querySelector('base');
 const baseHref = baseEl?.getAttribute('href') || '/';
 
@@ -139,6 +144,10 @@ export const router = createBrowserRouter(
             {
               path: 'workspace',
               lazy: loadWorkspacePage,
+            },
+            {
+              path: 'workspace/site/:section?',
+              lazy: loadSiteStudioPage,
             },
             {
               path: 'c/:conversationId?',
