@@ -115,6 +115,17 @@ const message = {
   isCreatedByUser: false,
 } as TMessage;
 
+const secondConversation = {
+  ...conversation,
+  conversationId: 'conversation-2',
+} as TConversation;
+
+const secondMessage = {
+  ...message,
+  messageId: 'message-2',
+  conversationId: secondConversation.conversationId,
+} as TMessage;
+
 function createContextValue(
   overrides: Partial<MessagesViewContextValue> = {},
 ): MessagesViewContextValue {
@@ -162,6 +173,22 @@ function renderScrolling({
         <ScrollingHarness messagesTree={messagesTree} />
       </MessagesViewContext.Provider>
     </RecoilRoot>,
+  );
+}
+
+function scrollingView(currentConversation: TConversation, messagesTree?: TMessage[] | null) {
+  return (
+    <RecoilRoot>
+      <MessagesViewContext.Provider
+        value={createContextValue({
+          conversation: currentConversation,
+          conversationId: currentConversation.conversationId,
+          isSubmitting: false,
+        })}
+      >
+        <ScrollingHarness messagesTree={messagesTree} />
+      </MessagesViewContext.Provider>
+    </RecoilRoot>
   );
 }
 
@@ -286,5 +313,42 @@ describe('useMessageScrolling resize reconciliation', () => {
 
     expect(scrollable.scrollTop).toBe(700);
     expect(mockScrollToBottom).not.toHaveBeenCalled();
+  });
+
+  it('opens a rendered conversation at its latest message', () => {
+    render(scrollingView(conversation, [message]));
+
+    expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
+    expect(mockScrollToBottom.cancel).toHaveBeenCalledTimes(1);
+  });
+
+  it('waits for the entered conversation messages before scrolling to the bottom', () => {
+    const { rerender } = render(scrollingView(secondConversation));
+
+    expect(mockScrollToBottom).not.toHaveBeenCalled();
+
+    rerender(scrollingView(secondConversation, [secondMessage]));
+
+    expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
+
+    rerender(
+      scrollingView(secondConversation, [secondMessage, { ...secondMessage, messageId: '3' }]),
+    );
+
+    expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not scroll the previous conversation while the next one is loading', () => {
+    const { rerender } = render(scrollingView(conversation, [message]));
+    mockScrollToBottom.mockClear();
+    mockScrollToBottom.cancel.mockClear();
+
+    rerender(scrollingView(secondConversation, [message]));
+
+    expect(mockScrollToBottom).not.toHaveBeenCalled();
+
+    rerender(scrollingView(secondConversation, [secondMessage]));
+
+    expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
   });
 });

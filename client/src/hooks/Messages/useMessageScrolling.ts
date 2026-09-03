@@ -1,24 +1,22 @@
-import { useRecoilValue } from 'recoil';
 import { Constants } from 'librechat-data-provider';
 import { useState, useRef, useCallback, useEffect } from 'react';
 import type { TMessage } from 'librechat-data-provider';
 import { useMessagesConversation, useMessagesSubmission } from '~/Providers';
 import useScrollToRef from '~/hooks/useScrollToRef';
 import { reconcileMessageContentLayout } from './messageLayout';
-import store from '~/store';
 
 const threshold = 0.85;
 const debounceRate = 150;
 const resizeFollowThreshold = 120;
 
 export default function useMessageScrolling(messagesTree?: TMessage[] | null) {
-  const autoScroll = useRecoilValue(store.autoScroll);
-
   const scrollableRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const isNearBottomRef = useRef(true);
   const suppressNextResizeFollowRef = useRef(false);
+  const activeConversationIdRef = useRef<string | null>();
+  const pendingInitialScrollRef = useRef(true);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const { conversation, conversationId } = useMessagesConversation();
   const { setAbortScroll, isSubmitting, abortScroll } = useMessagesSubmission();
@@ -177,14 +175,30 @@ export default function useMessageScrolling(messagesTree?: TMessage[] | null) {
   }, [isSubmitting, messagesTree, scrollToBottom, abortScroll]);
 
   useEffect(() => {
-    if (!messagesEndRef.current || !scrollableRef.current) {
+    if (activeConversationIdRef.current !== conversationId) {
+      activeConversationIdRef.current = conversationId;
+      pendingInitialScrollRef.current = true;
+    }
+
+    if (
+      !pendingInitialScrollRef.current ||
+      !messagesTree?.length ||
+      !messagesEndRef.current ||
+      !scrollableRef.current ||
+      conversationId === Constants.NEW_CONVO
+    ) {
       return;
     }
 
-    if (scrollToBottom && autoScroll && conversationId !== Constants.NEW_CONVO) {
-      scrollToBottom();
+    const renderedConversationId = messagesTree[0]?.conversationId ?? conversationId;
+    if (renderedConversationId !== conversationId || !scrollToBottom) {
+      return;
     }
-  }, [autoScroll, conversationId, scrollToBottom]);
+
+    pendingInitialScrollRef.current = false;
+    scrollToBottom.cancel();
+    scrollToBottom();
+  }, [conversationId, messagesTree, scrollToBottom]);
 
   return {
     conversation,
