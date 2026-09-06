@@ -73,6 +73,20 @@ test('the iOS shell provides native navigation and route-aware mobile presentati
   assert.match(webView, /prefers-reduced-motion/);
 });
 
+test('the iOS shell and web content follow the device light and dark appearance', async () => {
+  const rootView = await read('custom/ios/ChatOne/Sources/RootView.swift');
+  const webView = await read('custom/ios/ChatOne/Sources/WebView.swift');
+  assert.match(rootView, /adaptive\(light:/);
+  assert.match(rootView, /dark: 0x272724/);
+  assert.doesNotMatch(rootView, /ultraThinMaterial/);
+  assert.match(webView, /@Environment\(\\\.colorScheme\)/);
+  assert.match(webView, /overrideUserInterfaceStyle/);
+  assert.match(webView, /localStorage\.setItem\('color-theme', 'system'\)/);
+  assert.match(webView, /@media \(prefers-color-scheme: dark\)/);
+  assert.match(webView, /color-scheme: light dark/);
+  assert.doesNotMatch(webView, /color-scheme: light;/);
+});
+
 test('physical devices require a configurable server while Simulator uses localhost', async () => {
   const source = await read('custom/ios/ChatOne/Sources/ServerAddress.swift');
   assert.match(source, /#if targetEnvironment\(simulator\)/);

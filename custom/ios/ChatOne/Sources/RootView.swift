@@ -79,7 +79,7 @@ private struct ServerSetupView: View {
 
   var body: some View {
     ZStack {
-      Color(red: 0.97, green: 0.96, blue: 0.93)
+      AppPalette.canvas
         .ignoresSafeArea()
 
       ScrollView {
@@ -88,9 +88,9 @@ private struct ServerSetupView: View {
 
           Image(systemName: "message.and.waveform.fill")
             .font(.system(size: 42, weight: .medium))
-            .foregroundStyle(Color(red: 0.25, green: 0.40, blue: 0.34))
+            .foregroundStyle(AppPalette.accent)
             .frame(width: 88, height: 88)
-            .background(.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 25))
+            .background(AppPalette.surface, in: RoundedRectangle(cornerRadius: 25))
 
           VStack(spacing: 8) {
             Text("连接 ChatOne")
@@ -117,10 +117,10 @@ private struct ServerSetupView: View {
               }
               .padding(.horizontal, 16)
               .frame(height: 52)
-              .background(.white.opacity(0.88), in: RoundedRectangle(cornerRadius: 15))
+              .background(AppPalette.surface, in: RoundedRectangle(cornerRadius: 15))
               .overlay {
                 RoundedRectangle(cornerRadius: 15)
-                  .stroke(.black.opacity(0.08), lineWidth: 1)
+                  .stroke(AppPalette.divider, lineWidth: 1)
               }
 
             Text("同一 Wi-Fi 可填写 http://你的Mac局域网IP:3080；外网使用建议配置 HTTPS。")
@@ -130,7 +130,7 @@ private struct ServerSetupView: View {
             if let errorMessage {
               Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
                 .font(.system(size: 12))
-                .foregroundStyle(Color(red: 0.66, green: 0.22, blue: 0.18))
+                .foregroundStyle(AppPalette.danger)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("server-connection-error")
             }
@@ -203,11 +203,34 @@ private struct ChatContainer: View {
   }
 }
 
-private enum AppPalette {
-  static let canvas = Color(red: 0.965, green: 0.957, blue: 0.925)
-  static let ink = Color(red: 0.14, green: 0.137, blue: 0.122)
-  static let muted = Color(red: 0.42, green: 0.40, blue: 0.36)
-  static let accent = Color(red: 0.24, green: 0.39, blue: 0.33)
+enum AppPalette {
+  static let canvas = adaptive(light: 0xFAF9F6, dark: 0x272724)
+  static let surface = adaptive(light: 0xFFFEFA, dark: 0x2D2D2A)
+  static let ink = adaptive(light: 0x2F2D29, dark: 0xF0EEE8)
+  static let muted = adaptive(light: 0x716E67, dark: 0xBBB7AF)
+  static let accent = adaptive(light: 0xB55F43, dark: 0xD37A5D)
+  static let danger = adaptive(light: 0xA83832, dark: 0xE07C74)
+  static let divider = adaptive(light: 0xDED9CF, dark: 0x41413C)
+  static let pressed = adaptive(light: 0xE9E6DE, dark: 0x393936)
+
+  private static func adaptive(light: UInt32, dark: UInt32) -> Color {
+    Color(
+      uiColor: UIColor { traits in
+        UIColor(rgb: traits.userInterfaceStyle == .dark ? dark : light)
+      }
+    )
+  }
+}
+
+extension UIColor {
+  convenience init(rgb: UInt32) {
+    self.init(
+      red: CGFloat((rgb >> 16) & 0xFF) / 255,
+      green: CGFloat((rgb >> 8) & 0xFF) / 255,
+      blue: CGFloat(rgb & 0xFF) / 255,
+      alpha: 1
+    )
+  }
 }
 
 private struct NativeAppBar: View {
@@ -270,8 +293,7 @@ private struct NativeAppBar: View {
     .buttonStyle(NativeBarButtonStyle())
     .padding(.horizontal, 10)
     .frame(height: 50)
-    .background(.ultraThinMaterial)
-    .background(AppPalette.canvas.opacity(0.92))
+    .background(AppPalette.canvas)
     .overlay(alignment: .bottom) {
       if state.isLoading {
         ProgressView()
@@ -281,7 +303,7 @@ private struct NativeAppBar: View {
           .accessibilityLabel("正在连接")
       } else {
         Rectangle()
-          .fill(Color.black.opacity(0.07))
+          .fill(AppPalette.divider)
           .frame(height: 0.5)
       }
     }
@@ -316,7 +338,7 @@ private struct NativeBarButtonStyle: ButtonStyle {
     configuration.label
       .contentShape(Rectangle())
       .background(
-        Color.black.opacity(configuration.isPressed ? 0.08 : 0),
+        AppPalette.pressed.opacity(configuration.isPressed ? 1 : 0),
         in: RoundedRectangle(cornerRadius: 12)
       )
       .scaleEffect(configuration.isPressed ? 0.96 : 1)
@@ -331,7 +353,7 @@ private struct ConnectionErrorView: View {
 
   var body: some View {
     ZStack {
-      Color(red: 0.97, green: 0.96, blue: 0.93)
+      AppPalette.canvas
         .ignoresSafeArea()
 
       VStack(spacing: 18) {

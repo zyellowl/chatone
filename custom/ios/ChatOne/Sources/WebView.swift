@@ -43,6 +43,7 @@ final class WebViewState: ObservableObject {
 struct ChatWebView: UIViewRepresentable {
   let serverURL: URL
   @ObservedObject var state: WebViewState
+  @Environment(\.colorScheme) private var colorScheme
 
   func makeCoordinator() -> Coordinator {
     Coordinator(serverURL: serverURL, state: state)
@@ -70,8 +71,7 @@ struct ChatWebView: UIViewRepresentable {
     webView.allowsBackForwardNavigationGestures = true
     webView.allowsLinkPreview = false
     webView.isOpaque = false
-    webView.backgroundColor = UIColor(red: 0.965, green: 0.957, blue: 0.925, alpha: 1)
-    webView.scrollView.backgroundColor = webView.backgroundColor
+    Self.applyAppearance(colorScheme, to: webView)
     webView.scrollView.keyboardDismissMode = .interactive
     webView.scrollView.contentInsetAdjustmentBehavior = .never
     webView.scrollView.alwaysBounceVertical = false
@@ -104,6 +104,11 @@ struct ChatWebView: UIViewRepresentable {
       (() => {
         const root = document.documentElement;
         const fontFamily = '"PingFang SC", ".PingFang UI SC", "Hiragino Sans", -apple-system, BlinkMacSystemFont, sans-serif';
+        try {
+          window.localStorage.setItem('color-theme', 'system');
+        } catch (_) {
+          // Private browsing and restricted storage should not block the app shell.
+        }
         root.classList.add('chatone-ios');
         root.style.setProperty('--pa-font-ui', fontFamily, 'important');
         root.style.setProperty('--pa-font-display', fontFamily, 'important');
@@ -113,16 +118,36 @@ struct ChatWebView: UIViewRepresentable {
         style.id = 'chatone-ios-experience';
         style.textContent = `
           html.chatone-ios {
-            --chatone-native-canvas: #f7f4ec;
-            --chatone-native-surface: rgba(255, 255, 255, 0.92);
-            --chatone-native-line: rgba(48, 45, 39, 0.13);
-            --chatone-native-ink: #24231f;
-            --chatone-native-muted: #77736a;
-            --chatone-native-accent: #b95f42;
+            --chatone-native-canvas: #faf9f6;
+            --chatone-native-surface: #fffefa;
+            --chatone-native-line: #ded9cf;
+            --chatone-native-ink: #2f2d29;
+            --chatone-native-muted: #716e67;
+            --chatone-native-accent: #b55f43;
+            --chatone-native-logo-surface: rgba(255, 254, 250, 0.78);
+            --chatone-native-logo-line: rgba(55, 51, 44, 0.08);
+            --chatone-native-logo-shadow: rgba(56, 48, 38, 0.08);
+            --chatone-native-focus: rgba(181, 95, 67, 0.16);
             height: 100%;
-            color-scheme: light;
+            color-scheme: light dark;
             -webkit-text-size-adjust: 100%;
             overscroll-behavior: none;
+          }
+
+          @media (prefers-color-scheme: dark) {
+            html.chatone-ios {
+              --chatone-native-canvas: #272724;
+              --chatone-native-surface: #2d2d2a;
+              --chatone-native-line: #41413c;
+              --chatone-native-ink: #f0eee8;
+              --chatone-native-muted: #bbb7af;
+              --chatone-native-accent: #d37a5d;
+              --chatone-native-logo-surface: rgba(45, 45, 42, 0.92);
+              --chatone-native-logo-line: rgba(240, 238, 232, 0.10);
+              --chatone-native-logo-shadow: rgba(0, 0, 0, 0.30);
+              --chatone-native-focus: rgba(211, 122, 93, 0.20);
+              color-scheme: dark;
+            }
           }
 
           html.chatone-ios body,
@@ -309,8 +334,8 @@ struct ChatWebView: UIViewRepresentable {
             height: 58px;
             margin-bottom: 26px;
             border-radius: 17px;
-            background: rgba(255, 255, 255, 0.72) url('/assets/logo.svg') center / 38px 38px no-repeat;
-            box-shadow: inset 0 0 0 1px rgba(55, 51, 44, 0.08), 0 10px 28px rgba(56, 48, 38, 0.08);
+            background: var(--chatone-native-logo-surface) url('/assets/logo.svg') center / 38px 38px no-repeat;
+            box-shadow: inset 0 0 0 1px var(--chatone-native-logo-line), 0 10px 28px var(--chatone-native-logo-shadow);
             content: '';
           }
 
@@ -345,8 +370,8 @@ struct ChatWebView: UIViewRepresentable {
           }
 
           html.chatone-auth main input:focus {
-            border-color: rgba(54, 87, 72, 0.60) !important;
-            box-shadow: 0 0 0 3px rgba(54, 87, 72, 0.12) !important;
+            border-color: var(--chatone-native-accent) !important;
+            box-shadow: 0 0 0 3px var(--chatone-native-focus) !important;
           }
 
           html.chatone-auth main label {
@@ -435,9 +460,18 @@ struct ChatWebView: UIViewRepresentable {
       """
 
   func updateUIView(_ webView: WKWebView, context: Context) {
+    Self.applyAppearance(colorScheme, to: webView)
     guard context.coordinator.serverURL != serverURL else { return }
     context.coordinator.serverURL = serverURL
     webView.load(URLRequest(url: serverURL))
+  }
+
+  private static func applyAppearance(_ colorScheme: ColorScheme, to webView: WKWebView) {
+    let isDark = colorScheme == .dark
+    let background = UIColor(rgb: isDark ? 0x272724 : 0xFAF9F6)
+    webView.overrideUserInterfaceStyle = isDark ? .dark : .light
+    webView.backgroundColor = background
+    webView.scrollView.backgroundColor = background
   }
 
   static func dismantleUIView(_ webView: WKWebView, coordinator: Coordinator) {
