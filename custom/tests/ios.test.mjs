@@ -44,6 +44,17 @@ test('the iOS web view keeps login state and appends a browser-compatible user a
   assert.doesNotMatch(source, /customUserAgent/);
 });
 
+test('the iOS web view uses system CJK fonts instead of Latin-only web font glyphs', async () => {
+  const source = await read('custom/ios/ChatOne/Sources/WebView.swift');
+  assert.match(source, /root\.classList\.add\('chatone-ios'\)/);
+  assert.match(source, /root\.style\.setProperty/);
+  assert.match(source, /--pa-font-ui/);
+  assert.match(source, /--pa-font-display/);
+  assert.match(source, /-apple-system/);
+  assert.match(source, /Hiragino Sans/);
+  assert.match(source, /PingFang SC/);
+});
+
 test('physical devices require a configurable server while Simulator uses localhost', async () => {
   const source = await read('custom/ios/ChatOne/Sources/ServerAddress.swift');
   assert.match(source, /#if targetEnvironment\(simulator\)/);

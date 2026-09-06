@@ -10,9 +10,6 @@ provider credentials.
 - The existing ChatOne Docker services running on the Mac.
 - iOS 16 or newer.
 
-This Mac currently has Command Line Tools only. Install the full Xcode application before running
-the simulator build. The project and assets can still be inspected without Xcode.
-
 The scripts discover Xcode in either `/Applications/Xcode.app` or
 `~/Applications/Xcode.app`. A user-local installation avoids changing the machine-wide
 `xcode-select` setting; `DEVELOPER_DIR` can also point at another Xcode installation.
@@ -57,14 +54,14 @@ the home network, place LibreChat behind HTTPS or a private VPN such as Tailscal
 - Native download handoff to the iOS share sheet; external Web Search citations open in Safari.
 - A connection recovery screen can retry or change the server address.
 - iPhone and iPad layouts, orientation support, safe-area handling and `100dvh` web layout.
+- System CJK font fallback inside WebKit so Chinese labels render correctly on iOS.
 - A privacy manifest, opaque App Store icon, and no broad arbitrary-network-load exception.
 
 The server address is a non-secret preference stored in `UserDefaults`. GPT traffic continues
 through the server-side subscription endpoint configured by `librechat.yaml`.
 
-## Current machine prerequisite
+## Verified locally
 
-The source project, assets, static checks, and build scripts are complete. This Mac currently has
-Command Line Tools but not the full Xcode application, so an iOS Simulator binary cannot be produced
-until Xcode and an iOS Simulator runtime are installed. Xcode may require an Apple Account sign-in
-to download the version compatible with the installed macOS release.
+The project has been compiled and launched with Xcode 26.3 and the iOS 26.3 Simulator. Run
+`npm run ios:test` for the wrapper's safety and integration checks, then `npm run ios:run` to rebuild,
+install, and launch the current source on an available iPhone Simulator.

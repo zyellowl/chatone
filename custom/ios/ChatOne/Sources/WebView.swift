@@ -45,7 +45,16 @@ struct ChatWebView: UIViewRepresentable {
     configuration.defaultWebpagePreferences.allowsContentJavaScript = true
 
     let appModeScript = WKUserScript(
-      source: "document.documentElement.classList.add('chatone-ios')",
+      source: """
+      (() => {
+        const root = document.documentElement;
+        const fontFamily = '"PingFang SC", ".PingFang UI SC", "Hiragino Sans", -apple-system, BlinkMacSystemFont, sans-serif';
+        root.classList.add('chatone-ios');
+        root.style.setProperty('--pa-font-ui', fontFamily, 'important');
+        root.style.setProperty('--pa-font-display', fontFamily, 'important');
+        root.style.setProperty('font-family', fontFamily, 'important');
+      })();
+      """,
       injectionTime: .atDocumentStart,
       forMainFrameOnly: true
     )
