@@ -56,16 +56,6 @@ const loadUsagePage = () =>
     Component: m.default,
   }));
 
-const loadWorkspacePage = () =>
-  import('~/custom/workspace/WorkspacePage').then((m) => ({
-    Component: m.default,
-  }));
-
-const loadSiteStudioPage = () =>
-  import('~/custom/site/SiteStudioPage').then((m) => ({
-    Component: m.default,
-  }));
-
 const baseEl = document.querySelector('base');
 const baseHref = baseEl?.getAttribute('href') || '/';
 
@@ -139,15 +129,11 @@ export const router = createBrowserRouter(
           children: [
             {
               index: true,
-              element: <Navigate to="/workspace" replace={true} />,
+              element: <Navigate to="/c/new" replace={true} />,
             },
             {
-              path: 'workspace',
-              lazy: loadWorkspacePage,
-            },
-            {
-              path: 'workspace/site/:section?',
-              lazy: loadSiteStudioPage,
+              path: 'workspace/*',
+              element: <Navigate to="/c/new" replace={true} />,
             },
             {
               path: 'c/:conversationId?',

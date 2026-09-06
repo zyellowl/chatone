@@ -8,11 +8,11 @@ interface:
   parameters: true
   presets: false
   prompts:
-    use: true
-    create: true
+    use: false
+    create: false
     share: false
     public: false
-  bookmarks: true
+  bookmarks: false
   multiConvo: false
   agents:
     use: false
@@ -22,8 +22,6 @@ interface:
   marketplace:
     use: false
   fileCitations: true
-  defaultPinnedTools:
-    - artifacts
 
 modelSpecs:
   enforce: true

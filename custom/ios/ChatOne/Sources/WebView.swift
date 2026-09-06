@@ -231,20 +231,21 @@ struct ChatWebView: UIViewRepresentable {
 
           html.chatone-app .personal-claude-form {
             width: 100% !important;
-            padding: 0 10px max(9px, env(safe-area-inset-bottom)) !important;
+            padding: 0 10px !important;
           }
 
           html.chatone-app .personal-claude-form [data-testid='chat-composer'] {
-            min-height: 96px !important;
+            min-height: 92px !important;
+            margin-bottom: max(8px, env(safe-area-inset-bottom)) !important;
             border-radius: 22px !important;
             padding-bottom: 0 !important;
             box-shadow: 0 8px 28px rgba(40, 35, 28, 0.10), 0 1px 2px rgba(40, 35, 28, 0.08) !important;
           }
 
           html.chatone-app .personal-claude-form [data-testid='text-input'] {
-            min-height: 52px !important;
-            padding: 14px 16px 8px !important;
-            font-size: 17px !important;
+            min-height: 48px !important;
+            padding: 13px 15px 6px !important;
+            font-size: 16px !important;
             line-height: 1.45 !important;
           }
 
@@ -256,12 +257,12 @@ struct ChatWebView: UIViewRepresentable {
           }
 
           html.chatone-app .personal-claude-landing {
-            padding: 0 20px clamp(42px, 8vh, 72px) !important;
+            padding: 0 20px clamp(36px, 7vh, 62px) !important;
           }
 
           html.chatone-app .personal-claude-greeting {
             max-width: 20rem !important;
-            font-size: clamp(30px, 8vw, 38px) !important;
+            font-size: clamp(28px, 7.4vw, 35px) !important;
             line-height: 1.12 !important;
             letter-spacing: -0.035em !important;
           }
@@ -334,7 +335,7 @@ struct ChatWebView: UIViewRepresentable {
             height: 58px;
             margin-bottom: 26px;
             border-radius: 17px;
-            background: var(--chatone-native-logo-surface) url('/assets/logo.svg') center / 38px 38px no-repeat;
+            background: var(--chatone-native-logo-surface) url('/assets/logo.svg?v=claude') center / 38px 38px no-repeat;
             box-shadow: inset 0 0 0 1px var(--chatone-native-logo-line), 0 10px 28px var(--chatone-native-logo-shadow);
             content: '';
           }

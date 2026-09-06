@@ -144,30 +144,32 @@ test('custom UI stays isolated behind one stylesheet import', async () => {
   assert.match(styles, /nav\[aria-keyshortcuts='Shift\+Alt\+M'\]/);
 });
 
-test('the Claude-like navigation keeps conversation search enabled', async () => {
+test('the Claude-like navigation stays focused on chat, search, projects, and account', async () => {
   const shell = await read('client/src/custom/claude/ClaudeSidebarShell.tsx');
+  const collapsed = await read('client/src/custom/claude/ClaudeCollapsedSidebar.tsx');
+  const sidebarLinks = await read('client/src/hooks/Nav/useUnifiedSidebarLinks.ts');
   const conversations = await read('client/src/components/UnifiedSidebar/ConversationsSection.tsx');
   const searchBar = await read('client/src/components/Nav/SearchBar.tsx');
   const composeOverride = await read('docker-compose.override.yaml');
   assert.match(shell, /data-testid="nav-search-input"/);
-  assert.match(shell, /\/assets\/chatone-troll\.png/);
-  assert.doesNotMatch(shell, /<Sparkles/);
+  assert.match(shell, /\/assets\/logo\.svg\?v=claude/);
+  assert.match(shell, /to="\/projects"/);
+  assert.doesNotMatch(shell, /workspace|usage-nav-button|com_nav_customize|com_usage_nav/);
+  assert.doesNotMatch(collapsed, /workspace|LayoutDashboard|MessageSquare/);
+  assert.doesNotMatch(sidebarLinks, /useSideNavLinks|sideNavLinks/);
   assert.match(conversations, /search\.isSearching \|\| search\.query/);
   assert.match(searchBar, /chatone-search-field/);
   assert.match(composeOverride, /SEARCH: 'true'/);
 });
 
-test('the personal website studio is a native ChatOne workspace route', async () => {
-  const workspace = await read('client/src/custom/workspace/WorkspacePage.tsx');
+test('jojoo.cc management has no route or navigation entry in ChatOne', async () => {
   const routes = await read('client/src/routes/index.tsx');
-  const studio = await read('client/src/custom/site/SiteStudioPage.tsx');
-  const api = await read('client/src/data-provider/Jojoo/api.ts');
-  assert.match(workspace, /<Link to="\/workspace\/site">/);
-  assert.match(routes, /path: 'workspace\/site\/:section\?'/);
-  assert.match(studio, /<ProfileEditor/);
-  assert.match(studio, /<BlogEditor/);
-  assert.match(api, /const JOJOO_API_ORIGIN = 'http:\/\/127\.0\.0\.1:8788'/);
-  assert.doesNotMatch(workspace, /127\.0\.0\.1:5174/);
+  const shell = await read('client/src/custom/claude/ClaudeSidebarShell.tsx');
+  const collapsed = await read('client/src/custom/claude/ClaudeCollapsedSidebar.tsx');
+  assert.match(routes, /element: <Navigate to="\/c\/new" replace=\{true\} \/>/);
+  assert.match(routes, /path: 'workspace\/\*'/);
+  assert.doesNotMatch(routes, /loadWorkspacePage|loadSiteStudioPage|SiteStudioPage/);
+  assert.doesNotMatch(shell + collapsed, /workspace\/site|jojoo\.cc|com_workspace_manage_site/);
 });
 
 test('the ChatOne composer omits advanced tool and artifact controls', async () => {
