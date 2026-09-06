@@ -96,7 +96,7 @@ struct ChatWebView: UIViewRepresentable {
       guard let newChatURL = URL(string: "/c/new", relativeTo: serverURL)?.absoluteURL else { return }
       webView?.load(URLRequest(url: newChatURL))
     }
-    webView.load(URLRequest(url: serverURL))
+    context.coordinator.restoreSessionAndLoad(webView)
     return webView
   }
 
@@ -463,7 +463,7 @@ struct ChatWebView: UIViewRepresentable {
     Self.applyAppearance(colorScheme, to: webView)
     guard context.coordinator.serverURL != serverURL else { return }
     context.coordinator.serverURL = serverURL
-    webView.load(URLRequest(url: serverURL))
+    context.coordinator.restoreSessionAndLoad(webView)
   }
 
   private static func applyAppearance(_ colorScheme: ColorScheme, to webView: WKWebView) {
@@ -478,6 +478,7 @@ struct ChatWebView: UIViewRepresentable {
     webView.stopLoading()
     webView.navigationDelegate = nil
     webView.uiDelegate = nil
+    webView.configuration.websiteDataStore.httpCookieStore.remove(coordinator)
     coordinator.state.reloadAction = nil
     coordinator.state.goBackAction = nil
     coordinator.state.goForwardAction = nil
@@ -487,15 +488,41 @@ struct ChatWebView: UIViewRepresentable {
   }
 
   @MainActor
-  final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler {
+  final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler,
+    WKHTTPCookieStoreObserver
+  {
     var serverURL: URL
     let state: WebViewState
     weak var webView: WKWebView?
     private var downloadDestinations: [ObjectIdentifier: URL] = [:]
+    private var isObservingCookies = false
 
     init(serverURL: URL, state: WebViewState) {
       self.serverURL = serverURL
       self.state = state
+    }
+
+    func restoreSessionAndLoad(_ webView: WKWebView) {
+      let cookieStore = webView.configuration.websiteDataStore.httpCookieStore
+      if isObservingCookies {
+        cookieStore.remove(self)
+        isObservingCookies = false
+      }
+
+      let savedCookies = SessionCookieVault.load(for: serverURL)
+      Task { @MainActor [weak self, weak webView] in
+        guard let self, let webView else { return }
+        for cookie in savedCookies {
+          await cookieStore.setCookie(cookie)
+        }
+        cookieStore.add(self)
+        self.isObservingCookies = true
+        webView.load(URLRequest(url: self.serverURL))
+      }
+    }
+
+    func cookiesDidChange(in cookieStore: WKHTTPCookieStore) {
+      persistSessionCookies(from: cookieStore)
     }
 
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation?) {
@@ -508,6 +535,7 @@ struct ChatWebView: UIViewRepresentable {
       state.isLoading = false
       state.errorMessage = nil
       webView.scrollView.refreshControl?.endRefreshing()
+      persistSessionCookies(from: webView.configuration.websiteDataStore.httpCookieStore)
       updateNavigationState(webView)
     }
 
@@ -603,6 +631,14 @@ struct ChatWebView: UIViewRepresentable {
     private func updateNavigationState(_ webView: WKWebView) {
       state.canGoBack = webView.canGoBack
       state.canGoForward = webView.canGoForward
+    }
+
+    private func persistSessionCookies(from cookieStore: WKHTTPCookieStore) {
+      guard isObservingCookies else { return }
+      cookieStore.getAllCookies { [weak self] cookies in
+        guard let self else { return }
+        SessionCookieVault.save(cookies, for: self.serverURL)
+      }
     }
 
     func userContentController(

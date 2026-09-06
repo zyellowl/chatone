@@ -39,8 +39,16 @@ test('the iOS bundle contains no ZenMux credential', async () => {
 
 test('the iOS web view keeps login state and appends a browser-compatible user agent token', async () => {
   const source = await read('custom/ios/ChatOne/Sources/WebView.swift');
+  const vault = await read('custom/ios/ChatOne/Sources/SessionCookieVault.swift');
   assert.match(source, /websiteDataStore\s*=\s*\.default\(\)/);
   assert.match(source, /applicationNameForUserAgent\s*=\s*"ChatOne-iOS\/1\.0"/);
+  assert.match(source, /restoreSessionAndLoad/);
+  assert.match(source, /WKHTTPCookieStoreObserver/);
+  assert.match(vault, /kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly/);
+  assert.match(vault, /"refreshToken"/);
+  assert.match(vault, /"connect\.sid"/);
+  assert.match(vault, /contains\(where: \{ \$0\.name == "refreshToken" \}\)/);
+  assert.match(vault, /static func clear/);
   assert.doesNotMatch(source, /customUserAgent/);
 });
 

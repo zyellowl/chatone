@@ -14,6 +14,7 @@
 		10A000000000000000000105 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 10A000000000000000000005 /* Assets.xcassets */; };
 		10A000000000000000000106 /* ServerProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10A000000000000000000008 /* ServerProbe.swift */; };
 		10A000000000000000000107 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 10A000000000000000000009 /* PrivacyInfo.xcprivacy */; };
+		10A000000000000000000108 /* SessionCookieVault.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10A00000000000000000000A /* SessionCookieVault.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +27,7 @@
 		10A000000000000000000007 /* ChatOne.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ChatOne.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		10A000000000000000000008 /* ServerProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerProbe.swift; sourceTree = "<group>"; };
 		10A000000000000000000009 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		10A00000000000000000000A /* SessionCookieVault.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionCookieVault.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,6 +76,7 @@
 				10A000000000000000000003 /* ServerAddress.swift */,
 				10A000000000000000000008 /* ServerProbe.swift */,
 				10A000000000000000000004 /* WebView.swift */,
+				10A00000000000000000000A /* SessionCookieVault.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -154,6 +157,7 @@
 				10A000000000000000000103 /* ServerAddress.swift in Sources */,
 				10A000000000000000000106 /* ServerProbe.swift in Sources */,
 				10A000000000000000000104 /* WebView.swift in Sources */,
+				10A000000000000000000108 /* SessionCookieVault.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
