@@ -8,10 +8,14 @@ final class WebViewState: ObservableObject {
   @Published var errorMessage: String?
   @Published var canGoBack = false
   @Published var canGoForward = false
+  @Published var isAuthPage = true
+  @Published var routePath = "/"
 
   fileprivate var reloadAction: (() -> Void)?
   fileprivate var goBackAction: (() -> Void)?
   fileprivate var goForwardAction: (() -> Void)?
+  fileprivate var openSidebarAction: (() -> Void)?
+  fileprivate var newChatAction: (() -> Void)?
 
   func retry() {
     errorMessage = nil
@@ -25,6 +29,14 @@ final class WebViewState: ObservableObject {
 
   func goForward() {
     goForwardAction?()
+  }
+
+  func openSidebar() {
+    openSidebarAction?()
+  }
+
+  func newChat() {
+    newChatAction?()
   }
 }
 
@@ -45,20 +57,12 @@ struct ChatWebView: UIViewRepresentable {
     configuration.defaultWebpagePreferences.allowsContentJavaScript = true
 
     let appModeScript = WKUserScript(
-      source: """
-      (() => {
-        const root = document.documentElement;
-        const fontFamily = '"PingFang SC", ".PingFang UI SC", "Hiragino Sans", -apple-system, BlinkMacSystemFont, sans-serif';
-        root.classList.add('chatone-ios');
-        root.style.setProperty('--pa-font-ui', fontFamily, 'important');
-        root.style.setProperty('--pa-font-display', fontFamily, 'important');
-        root.style.setProperty('font-family', fontFamily, 'important');
-      })();
-      """,
+      source: Self.appModeSource,
       injectionTime: .atDocumentStart,
       forMainFrameOnly: true
     )
     configuration.userContentController.addUserScript(appModeScript)
+    configuration.userContentController.add(context.coordinator, name: "chatOneNative")
 
     let webView = WKWebView(frame: .zero, configuration: configuration)
     webView.navigationDelegate = context.coordinator
@@ -66,14 +70,12 @@ struct ChatWebView: UIViewRepresentable {
     webView.allowsBackForwardNavigationGestures = true
     webView.allowsLinkPreview = false
     webView.isOpaque = false
-    webView.backgroundColor = UIColor(red: 0.97, green: 0.96, blue: 0.93, alpha: 1)
+    webView.backgroundColor = UIColor(red: 0.965, green: 0.957, blue: 0.925, alpha: 1)
     webView.scrollView.backgroundColor = webView.backgroundColor
     webView.scrollView.keyboardDismissMode = .interactive
     webView.scrollView.contentInsetAdjustmentBehavior = .never
-
-    let refreshControl = UIRefreshControl()
-    refreshControl.addTarget(context.coordinator, action: #selector(Coordinator.refresh), for: .valueChanged)
-    webView.scrollView.refreshControl = refreshControl
+    webView.scrollView.alwaysBounceVertical = false
+    webView.scrollView.decelerationRate = .normal
 
     context.coordinator.webView = webView
     state.reloadAction = { [weak webView] in
@@ -85,9 +87,352 @@ struct ChatWebView: UIViewRepresentable {
     state.goForwardAction = { [weak webView] in
       if webView?.canGoForward == true { webView?.goForward() }
     }
+    state.openSidebarAction = { [weak webView] in
+      webView?.evaluateJavaScript(
+        "document.querySelector('[data-testid=\\\"open-sidebar-button\\\"]')?.click()"
+      )
+    }
+    state.newChatAction = { [weak webView] in
+      guard let newChatURL = URL(string: "/c/new", relativeTo: serverURL)?.absoluteURL else { return }
+      webView?.load(URLRequest(url: newChatURL))
+    }
     webView.load(URLRequest(url: serverURL))
     return webView
   }
+
+  private static let appModeSource = """
+      (() => {
+        const root = document.documentElement;
+        const fontFamily = '"PingFang SC", ".PingFang UI SC", "Hiragino Sans", -apple-system, BlinkMacSystemFont, sans-serif';
+        root.classList.add('chatone-ios');
+        root.style.setProperty('--pa-font-ui', fontFamily, 'important');
+        root.style.setProperty('--pa-font-display', fontFamily, 'important');
+        root.style.setProperty('font-family', fontFamily, 'important');
+
+        const style = document.createElement('style');
+        style.id = 'chatone-ios-experience';
+        style.textContent = `
+          html.chatone-ios {
+            --chatone-native-canvas: #f7f4ec;
+            --chatone-native-surface: rgba(255, 255, 255, 0.92);
+            --chatone-native-line: rgba(48, 45, 39, 0.13);
+            --chatone-native-ink: #24231f;
+            --chatone-native-muted: #77736a;
+            --chatone-native-accent: #b95f42;
+            height: 100%;
+            color-scheme: light;
+            -webkit-text-size-adjust: 100%;
+            overscroll-behavior: none;
+          }
+
+          html.chatone-ios body,
+          html.chatone-ios #root {
+            width: 100%;
+            height: 100%;
+            min-height: 100%;
+            overflow: hidden;
+            background: var(--chatone-native-canvas) !important;
+            color: var(--chatone-native-ink);
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
+          }
+
+          html.chatone-ios button,
+          html.chatone-ios a,
+          html.chatone-ios input,
+          html.chatone-ios textarea,
+          html.chatone-ios [role='button'] {
+            touch-action: manipulation;
+          }
+
+          html.chatone-ios input,
+          html.chatone-ios textarea,
+          html.chatone-ios select {
+            font-size: 16px !important;
+          }
+
+          html.chatone-ios :focus-visible {
+            outline-offset: 2px;
+          }
+
+          /* The SwiftUI app bar owns navigation in the iOS container. */
+          html.chatone-app .personal-claude-header {
+            display: none !important;
+          }
+
+          html.chatone-app .personal-claude-sidebar {
+            padding-top: 0 !important;
+            box-shadow: 16px 0 44px rgba(31, 28, 23, 0.16) !important;
+          }
+
+          html.chatone-app .personal-claude-sidebar-header {
+            min-height: 54px !important;
+            padding-top: 10px !important;
+          }
+
+          html.chatone-app .personal-claude-new-chat,
+          html.chatone-app .personal-claude-nav-row,
+          html.chatone-app .personal-claude-sidebar-body [data-testid='convo-item'] {
+            min-height: 44px !important;
+            border-radius: 12px !important;
+          }
+
+          html.chatone-app .personal-claude-thread .scrollbar-gutter-stable > .flex.flex-col {
+            padding-top: 14px !important;
+            padding-bottom: 20px !important;
+          }
+
+          html.chatone-app .personal-claude-thread .message-render {
+            width: calc(100% - 24px) !important;
+            max-width: 46rem !important;
+            scroll-margin-top: 12px !important;
+          }
+
+          html.chatone-app .personal-claude-thread .message-render .agent-turn {
+            font-size: 16px !important;
+            line-height: 1.68 !important;
+          }
+
+          html.chatone-app .personal-claude-thread .message-render .user-turn > .flex {
+            max-width: 90% !important;
+            border-radius: 18px !important;
+            padding: 10px 14px !important;
+          }
+
+          html.chatone-app .personal-claude-composer-wrap {
+            padding-top: 8px !important;
+            background: linear-gradient(to top, var(--pa-canvas) 72%, transparent) !important;
+          }
+
+          html.chatone-app .personal-claude-form {
+            width: 100% !important;
+            padding: 0 10px max(9px, env(safe-area-inset-bottom)) !important;
+          }
+
+          html.chatone-app .personal-claude-form [data-testid='chat-composer'] {
+            min-height: 96px !important;
+            border-radius: 22px !important;
+            padding-bottom: 0 !important;
+            box-shadow: 0 8px 28px rgba(40, 35, 28, 0.10), 0 1px 2px rgba(40, 35, 28, 0.08) !important;
+          }
+
+          html.chatone-app .personal-claude-form [data-testid='text-input'] {
+            min-height: 52px !important;
+            padding: 14px 16px 8px !important;
+            font-size: 17px !important;
+            line-height: 1.45 !important;
+          }
+
+          html.chatone-app .personal-claude-form [data-testid='chat-composer'] button,
+          html.chatone-app .personal-claude-form [data-testid='model-selector-button'] {
+            min-width: 40px !important;
+            min-height: 40px !important;
+            border-radius: 12px !important;
+          }
+
+          html.chatone-app .personal-claude-landing {
+            padding: 0 20px clamp(42px, 8vh, 72px) !important;
+          }
+
+          html.chatone-app .personal-claude-greeting {
+            max-width: 20rem !important;
+            font-size: clamp(30px, 8vw, 38px) !important;
+            line-height: 1.12 !important;
+            letter-spacing: -0.035em !important;
+          }
+
+          html.chatone-app [role='dialog'] {
+            width: calc(100vw - 20px) !important;
+            max-width: 560px !important;
+            max-height: calc(100dvh - 24px) !important;
+            border-radius: 24px !important;
+          }
+
+          html.chatone-app [role='menu'],
+          html.chatone-app [role='listbox'] {
+            max-width: calc(100vw - 16px) !important;
+            border-radius: 16px !important;
+          }
+
+          html.chatone-app [role='menuitem'],
+          html.chatone-app [role='option'] {
+            min-height: 44px !important;
+          }
+
+          /* A purpose-built sign-in surface instead of the desktop auth page. */
+          html.chatone-auth #root > .relative.flex.min-h-screen.flex-col {
+            min-height: 100dvh !important;
+            justify-content: flex-start !important;
+            background:
+              radial-gradient(circle at 50% -10%, rgba(185, 95, 66, 0.13), transparent 34%),
+              var(--chatone-native-canvas) !important;
+          }
+
+          html.chatone-auth #root > .relative.flex.min-h-screen.flex-col > .mt-6.h-10,
+          html.chatone-auth #root > .relative.flex.min-h-screen.flex-col > .absolute.bottom-0,
+          html.chatone-auth #root > .relative.flex.min-h-screen.flex-col > footer {
+            display: none !important;
+          }
+
+          html.chatone-auth #root > .relative.flex.min-h-screen.flex-col > main {
+            flex: 0 1 auto !important;
+            width: 100% !important;
+            align-items: flex-start !important;
+            padding: clamp(48px, 9vh, 88px) 20px 32px !important;
+          }
+
+          html.chatone-auth #root > .relative.flex.min-h-screen.flex-col > main > div {
+            width: 100% !important;
+            max-width: 430px !important;
+            margin: 0 auto !important;
+            overflow: visible !important;
+            border: 0 !important;
+            border-radius: 0 !important;
+            background: transparent !important;
+            padding: 0 8px !important;
+            box-shadow: none !important;
+          }
+
+          html.chatone-auth main h1 {
+            margin: 0 0 32px !important;
+            color: var(--chatone-native-ink) !important;
+            text-align: left !important;
+            font-size: 34px !important;
+            font-weight: 680 !important;
+            line-height: 1.12 !important;
+            letter-spacing: -0.035em !important;
+          }
+
+          html.chatone-auth main h1::before {
+            display: block;
+            width: 58px;
+            height: 58px;
+            margin-bottom: 26px;
+            border-radius: 17px;
+            background: rgba(255, 255, 255, 0.72) url('/assets/logo.svg') center / 38px 38px no-repeat;
+            box-shadow: inset 0 0 0 1px rgba(55, 51, 44, 0.08), 0 10px 28px rgba(56, 48, 38, 0.08);
+            content: '';
+          }
+
+          html.chatone-auth main h1::after {
+            display: block;
+            margin-top: 10px;
+            color: var(--chatone-native-muted);
+            content: '继续你的 ChatOne 对话';
+            font-size: 16px;
+            font-weight: 430;
+            letter-spacing: 0;
+            line-height: 1.45;
+          }
+
+          html.chatone-auth main form {
+            margin-top: 0 !important;
+          }
+
+          html.chatone-auth main form > div {
+            margin-bottom: 16px !important;
+          }
+
+          html.chatone-auth main input {
+            height: 56px !important;
+            border: 1px solid var(--chatone-native-line) !important;
+            border-radius: 16px !important;
+            background: var(--chatone-native-surface) !important;
+            padding-inline: 16px !important;
+            color: var(--chatone-native-ink) !important;
+            font-size: 17px !important;
+            box-shadow: 0 1px 1px rgba(40, 36, 30, 0.03) !important;
+          }
+
+          html.chatone-auth main input:focus {
+            border-color: rgba(54, 87, 72, 0.60) !important;
+            box-shadow: 0 0 0 3px rgba(54, 87, 72, 0.12) !important;
+          }
+
+          html.chatone-auth main label {
+            background: transparent !important;
+            color: var(--chatone-native-muted) !important;
+          }
+
+          html.chatone-auth main [data-testid='login-button'] {
+            height: 56px !important;
+            border: 0 !important;
+            border-radius: 16px !important;
+            background: var(--chatone-native-accent) !important;
+            color: white !important;
+            font-size: 17px !important;
+            font-weight: 650 !important;
+            box-shadow: 0 8px 20px rgba(142, 66, 43, 0.20) !important;
+          }
+
+          html.chatone-auth main [data-testid='login-button']:active {
+            transform: scale(0.985);
+            opacity: 0.92;
+          }
+
+          @media (max-height: 700px) {
+            html.chatone-auth #root > .relative.flex.min-h-screen.flex-col > main {
+              padding-top: 28px !important;
+            }
+
+            html.chatone-auth main h1 {
+              margin-bottom: 22px !important;
+            }
+
+            html.chatone-auth main h1::before {
+              width: 48px;
+              height: 48px;
+              margin-bottom: 18px;
+              border-radius: 14px;
+              background-size: 32px 32px;
+            }
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            html.chatone-ios *,
+            html.chatone-ios *::before,
+            html.chatone-ios *::after {
+              scroll-behavior: auto !important;
+              transition-duration: 0.01ms !important;
+              animation-duration: 0.01ms !important;
+              animation-iteration-count: 1 !important;
+            }
+          }
+        `;
+        root.appendChild(style);
+
+        const updateRoute = () => {
+          const path = window.location.pathname || '/';
+          const authRoutes = ['/login', '/register', '/forgot-password', '/reset-password'];
+          const isAuth = authRoutes.some((route) =>
+            path === route || path.endsWith(route) || path.includes(route + '/')
+          );
+          root.classList.toggle('chatone-auth', isAuth);
+          root.classList.toggle('chatone-app', !isAuth);
+          window.webkit?.messageHandlers?.chatOneNative?.postMessage({
+            type: 'route',
+            path,
+            isAuth,
+          });
+        };
+
+        const wrapHistory = (name) => {
+          const original = history[name];
+          history[name] = function () {
+            const result = original.apply(this, arguments);
+            queueMicrotask(updateRoute);
+            return result;
+          };
+        };
+
+        wrapHistory('pushState');
+        wrapHistory('replaceState');
+        window.addEventListener('popstate', updateRoute);
+        window.addEventListener('hashchange', updateRoute);
+        document.addEventListener('DOMContentLoaded', updateRoute, { once: true });
+        updateRoute();
+      })();
+      """
 
   func updateUIView(_ webView: WKWebView, context: Context) {
     guard context.coordinator.serverURL != serverURL else { return }
@@ -102,10 +447,13 @@ struct ChatWebView: UIViewRepresentable {
     coordinator.state.reloadAction = nil
     coordinator.state.goBackAction = nil
     coordinator.state.goForwardAction = nil
+    coordinator.state.openSidebarAction = nil
+    coordinator.state.newChatAction = nil
+    webView.configuration.userContentController.removeScriptMessageHandler(forName: "chatOneNative")
   }
 
   @MainActor
-  final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
+  final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler {
     var serverURL: URL
     let state: WebViewState
     weak var webView: WKWebView?
@@ -114,10 +462,6 @@ struct ChatWebView: UIViewRepresentable {
     init(serverURL: URL, state: WebViewState) {
       self.serverURL = serverURL
       self.state = state
-    }
-
-    @objc func refresh(_ sender: UIRefreshControl) {
-      webView?.reload()
     }
 
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation?) {
@@ -225,6 +569,20 @@ struct ChatWebView: UIViewRepresentable {
     private func updateNavigationState(_ webView: WKWebView) {
       state.canGoBack = webView.canGoBack
       state.canGoForward = webView.canGoForward
+    }
+
+    func userContentController(
+      _ userContentController: WKUserContentController,
+      didReceive message: WKScriptMessage
+    ) {
+      guard
+        message.name == "chatOneNative",
+        let payload = message.body as? [String: Any],
+        payload["type"] as? String == "route"
+      else { return }
+
+      state.routePath = payload["path"] as? String ?? "/"
+      state.isAuthPage = payload["isAuth"] as? Bool ?? false
     }
 
     private func presentShareSheet(for fileURL: URL) {

@@ -55,6 +55,24 @@ test('the iOS web view uses system CJK fonts instead of Latin-only web font glyp
   assert.match(source, /PingFang SC/);
 });
 
+test('the iOS shell provides native navigation and route-aware mobile presentation', async () => {
+  const rootView = await read('custom/ios/ChatOne/Sources/RootView.swift');
+  const webView = await read('custom/ios/ChatOne/Sources/WebView.swift');
+  assert.match(rootView, /NativeAppBar/);
+  assert.match(rootView, /sidebar\.left/);
+  assert.match(rootView, /square\.and\.pencil/);
+  assert.match(rootView, /UIImpactFeedbackGenerator/);
+  assert.doesNotMatch(rootView, /ZStack\(alignment: \.topTrailing\)/);
+  assert.match(webView, /chatOneNative/);
+  assert.match(webView, /chatone-auth/);
+  assert.match(webView, /chatone-app/);
+  assert.match(webView, /safe-area-inset-bottom/);
+  assert.match(webView, /data-testid='chat-composer'/);
+  assert.match(webView, /data-testid='login-button'/);
+  assert.match(webView, /font-size: 17px/);
+  assert.match(webView, /prefers-reduced-motion/);
+});
+
 test('physical devices require a configurable server while Simulator uses localhost', async () => {
   const source = await read('custom/ios/ChatOne/Sources/ServerAddress.swift');
   assert.match(source, /#if targetEnvironment\(simulator\)/);

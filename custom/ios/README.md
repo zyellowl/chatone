@@ -49,7 +49,9 @@ the home network, place LibreChat behind HTTPS or a private VPN such as Tailscal
 
 - Persistent LibreChat login and conversation state through `WKWebsiteDataStore.default()`.
 - A native server preflight check before saving the address.
-- Pull to refresh and interactive keyboard dismissal.
+- A native app bar for conversation history, new chat, reload, server settings and Safari handoff.
+- Route-aware iPhone layouts for authentication, conversations, composer controls, menus and dialogs.
+- Interactive keyboard dismissal with 16-point-or-larger web inputs to prevent focus zoom.
 - Camera, microphone, photo-library and document upload permission descriptions.
 - Native download handoff to the iOS share sheet; external Web Search citations open in Safari.
 - A connection recovery screen can retry or change the server address.

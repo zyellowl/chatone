@@ -178,51 +178,149 @@ private struct ChatContainer: View {
   @Environment(\.scenePhase) private var scenePhase
 
   var body: some View {
-    ZStack(alignment: .topTrailing) {
-      ChatWebView(serverURL: serverURL, state: state)
-        .ignoresSafeArea(.container, edges: .bottom)
+    VStack(spacing: 0) {
+      NativeAppBar(
+        state: state,
+        serverURL: serverURL,
+        onEditServer: onEditServer
+      )
 
-      if let error = state.errorMessage {
-        ConnectionErrorView(message: error, retry: state.retry, editServer: onEditServer)
-      } else if state.isLoading {
-        ProgressView()
-          .controlSize(.regular)
-          .padding(12)
-          .background(.ultraThinMaterial, in: Circle())
-          .padding(.top, 8)
-          .padding(.trailing, 10)
-          .accessibilityLabel("正在连接")
-      } else {
-        Menu {
-          if state.canGoBack {
-            Button("后退", systemImage: "chevron.backward", action: state.goBack)
-          }
-          if state.canGoForward {
-            Button("前进", systemImage: "chevron.forward", action: state.goForward)
-          }
-          Button("重新加载", systemImage: "arrow.clockwise", action: state.retry)
-          Button("修改服务器", systemImage: "server.rack", action: onEditServer)
-          Button("在 Safari 打开", systemImage: "safari") {
-            UIApplication.shared.open(serverURL)
-          }
-        } label: {
-          Image(systemName: "ellipsis")
-            .font(.system(size: 15, weight: .semibold))
-            .frame(width: 36, height: 36)
-            .background(.ultraThinMaterial, in: Circle())
+      ZStack {
+        ChatWebView(serverURL: serverURL, state: state)
+
+        if let error = state.errorMessage {
+          ConnectionErrorView(message: error, retry: state.retry, editServer: onEditServer)
         }
-        .foregroundStyle(.secondary)
-        .padding(.top, 8)
-        .padding(.trailing, 10)
-        .accessibilityLabel("应用菜单")
       }
     }
-    .background(Color(red: 0.97, green: 0.96, blue: 0.93))
+    .background(AppPalette.canvas)
+    .ignoresSafeArea(.container, edges: .bottom)
     .onChange(of: scenePhase) { phase in
       if phase == .active, state.errorMessage != nil {
         state.retry()
       }
     }
+  }
+}
+
+private enum AppPalette {
+  static let canvas = Color(red: 0.965, green: 0.957, blue: 0.925)
+  static let ink = Color(red: 0.14, green: 0.137, blue: 0.122)
+  static let muted = Color(red: 0.42, green: 0.40, blue: 0.36)
+  static let accent = Color(red: 0.24, green: 0.39, blue: 0.33)
+}
+
+private struct NativeAppBar: View {
+  @ObservedObject var state: WebViewState
+  let serverURL: URL
+  let onEditServer: () -> Void
+
+  var body: some View {
+    HStack(spacing: 10) {
+      if state.isAuthPage {
+        brand
+      } else {
+        Button(action: perform(state.openSidebar)) {
+          Image(systemName: "sidebar.left")
+            .font(.system(size: 16, weight: .semibold))
+            .frame(width: 38, height: 38)
+        }
+        .accessibilityLabel("打开对话列表")
+
+        Spacer(minLength: 0)
+
+        Text("ChatOne")
+          .font(.system(size: 17, weight: .semibold, design: .rounded))
+          .foregroundStyle(AppPalette.ink)
+          .accessibilityAddTraits(.isHeader)
+      }
+
+      Spacer(minLength: 0)
+
+      if !state.isAuthPage {
+        Button(action: perform(state.newChat)) {
+          Image(systemName: "square.and.pencil")
+            .font(.system(size: 16, weight: .semibold))
+            .frame(width: 38, height: 38)
+        }
+        .accessibilityLabel("新建对话")
+      }
+
+      Menu {
+        if state.canGoBack {
+          Button("后退", systemImage: "chevron.backward", action: perform(state.goBack))
+        }
+        if state.canGoForward {
+          Button("前进", systemImage: "chevron.forward", action: perform(state.goForward))
+        }
+        Button("重新加载", systemImage: "arrow.clockwise", action: perform(state.retry))
+        Divider()
+        Button("修改服务器", systemImage: "server.rack", action: onEditServer)
+        Button("在 Safari 打开", systemImage: "safari") {
+          UIApplication.shared.open(serverURL)
+        }
+      } label: {
+        Image(systemName: "ellipsis")
+          .font(.system(size: 16, weight: .semibold))
+          .frame(width: 38, height: 38)
+      }
+      .accessibilityLabel("应用菜单")
+    }
+    .foregroundStyle(AppPalette.muted)
+    .buttonStyle(NativeBarButtonStyle())
+    .padding(.horizontal, 10)
+    .frame(height: 50)
+    .background(.ultraThinMaterial)
+    .background(AppPalette.canvas.opacity(0.92))
+    .overlay(alignment: .bottom) {
+      if state.isLoading {
+        ProgressView()
+          .progressViewStyle(.linear)
+          .tint(AppPalette.accent)
+          .frame(height: 2)
+          .accessibilityLabel("正在连接")
+      } else {
+        Rectangle()
+          .fill(Color.black.opacity(0.07))
+          .frame(height: 0.5)
+      }
+    }
+  }
+
+  private var brand: some View {
+    HStack(spacing: 9) {
+      Image(systemName: "message.and.waveform.fill")
+        .font(.system(size: 14, weight: .semibold))
+        .foregroundStyle(.white)
+        .frame(width: 30, height: 30)
+        .background(AppPalette.accent, in: RoundedRectangle(cornerRadius: 9))
+
+      Text("ChatOne")
+        .font(.system(size: 17, weight: .semibold, design: .rounded))
+        .foregroundStyle(AppPalette.ink)
+    }
+    .accessibilityElement(children: .combine)
+    .accessibilityAddTraits(.isHeader)
+  }
+
+  private func perform(_ action: @escaping () -> Void) -> () -> Void {
+    {
+      UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+      action()
+    }
+  }
+}
+
+private struct NativeBarButtonStyle: ButtonStyle {
+  func makeBody(configuration: Configuration) -> some View {
+    configuration.label
+      .contentShape(Rectangle())
+      .background(
+        Color.black.opacity(configuration.isPressed ? 0.08 : 0),
+        in: RoundedRectangle(cornerRadius: 12)
+      )
+      .scaleEffect(configuration.isPressed ? 0.96 : 1)
+      .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
   }
 }
 
