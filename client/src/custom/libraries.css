@@ -592,6 +592,57 @@ body {
   text-align: right;
 }
 
+.chatone-visitor-route .chatone-visitor-turn {
+  align-items: flex-start;
+}
+
+.chatone-visitor-route .chatone-visitor-bubble.message-render {
+  width: fit-content;
+  max-width: min(82%, 36rem) !important;
+  margin-inline: 0;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.chatone-visitor-route .chatone-visitor-turn.user-turn .chatone-visitor-bubble {
+  padding: 0.68rem 0.92rem;
+  border: 1px solid var(--lib-border);
+  border-radius: 1.05rem 1.05rem 0.38rem 1.05rem;
+  background: rgb(var(--lib-tone) / 7%) !important;
+  box-shadow: var(--lib-shadow-inset);
+}
+
+.chatone-visitor-route .chatone-visitor-turn.assistant-turn .chatone-visitor-bubble {
+  max-width: min(90%, 40rem) !important;
+  padding: 0.28rem 0;
+  background: transparent;
+}
+
+.chatone-visitor-route .chatone-visitor-bubble .text-message {
+  align-items: flex-start;
+}
+
+.chatone-visitor-loading {
+  display: flex;
+  min-width: 2.2rem;
+  min-height: 2.2rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgb(var(--lib-tone) / 6%);
+  color: var(--lib-ink-muted);
+}
+
+@media (max-width: 640px) {
+  .chatone-visitor-route .chatone-visitor-bubble.message-render {
+    max-width: 88% !important;
+  }
+
+  .chatone-visitor-route .chatone-visitor-turn.assistant-turn .chatone-visitor-bubble {
+    max-width: 94% !important;
+  }
+}
+
 .personal-claude-form [data-testid='chat-composer'] {
   min-height: 7rem;
   border: 1px solid transparent !important;

@@ -119,9 +119,13 @@ export default function VisitorRoute() {
           {messages.map((message, index) => (
             <div
               key={index}
-              className={`group relative w-full px-5 py-4 ${message.isCreatedByUser ? 'user-turn' : 'assistant-turn'}`}
+              className={`chatone-visitor-turn group relative flex w-full px-5 py-3 ${
+                message.isCreatedByUser
+                  ? 'user-turn justify-end'
+                  : 'assistant-turn justify-start'
+              }`}
             >
-              <div className="chatone-message-body message-render">
+              <div className="chatone-visitor-bubble chatone-message-body message-render">
                 <Container>
                   {message.isCreatedByUser ? (
                     <div className="whitespace-pre-wrap">{message.text}</div>
@@ -133,8 +137,13 @@ export default function VisitorRoute() {
             </div>
           ))}
           {busy && (
-            <div role="status" className="px-5 py-4">
-              <Spinner />
+            <div
+              role="status"
+              className="chatone-visitor-turn assistant-turn flex w-full justify-start px-5 py-3"
+            >
+              <div className="chatone-visitor-loading">
+                <Spinner className="m-0" />
+              </div>
             </div>
           )}
           <div ref={bottom} />

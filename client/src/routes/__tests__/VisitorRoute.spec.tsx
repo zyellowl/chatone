@@ -73,6 +73,10 @@ describe('native ChatOne visitor route', () => {
       );
       expect(request.mock.calls[2][1].body).not.toContain('history');
       expect(await screen.findByText('Public resume Q&A · 19 / 20 remaining')).toBeInTheDocument();
+      expect(container.querySelector('.chatone-visitor-turn.user-turn')).toHaveClass('justify-end');
+      expect(container.querySelector('.chatone-visitor-turn.assistant-turn')).toHaveClass(
+        'justify-start',
+      );
       const reset = container.querySelector('header button');
       expect(reset).not.toBeNull();
       fireEvent.click(reset!);
