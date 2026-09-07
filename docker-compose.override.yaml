@@ -23,7 +23,7 @@ services:
     image: chatone-visitor:resume-qa-20260907
     build:
       context: .
-      target: node
+      dockerfile: custom/visitor/Dockerfile
     env_file:
       - .env
     environment: !override
