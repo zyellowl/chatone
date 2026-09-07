@@ -20,7 +20,7 @@ services:
       - chatone_meilisearch:/data/meilisearch
   api:
     container_name: ChatOne
-    image: chatone-librechat:0.8.7
+    image: chatone-visitor:20260907
     build:
       context: .
       target: node
@@ -39,6 +39,7 @@ services:
         condition: service_started
     volumes: !override
       - ./librechat.yaml:/app/librechat.yaml:ro
+      - ./custom/visitor/knowledge:/app/custom/visitor/knowledge:ro
       - chatone_images:/app/client/public/images
       - chatone_uploads:/app/uploads
       - chatone_logs:/app/logs
