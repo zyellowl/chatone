@@ -174,17 +174,6 @@ const startServer = async () => {
   /* Middleware */
   // Public visitor surface is independent of authentication, conversations and tools.
   app.use('/api/visitor', require('../../custom/visitor/server.cjs').createVisitorRouter());
-  app.use('/visitor', (_req, res, next) => {
-    res.set({
-      'Cache-Control': 'no-store',
-      'Content-Security-Policy': "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
-      'Referrer-Policy': 'no-referrer',
-      'X-Content-Type-Options': 'nosniff',
-      'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
-    });
-    next();
-  }, express.static(path.resolve(__dirname, '../../custom/visitor/dist'), { index: 'index.html' }));
-
   app.use(metricsMiddleware);
   app.use(noIndex);
   app.use(express.json({ limit: '3mb' }));

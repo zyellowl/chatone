@@ -1,4 +1,5 @@
 import { memo, useCallback } from 'react';
+import type { ReactNode } from 'react';
 import { useRecoilValue } from 'recoil';
 import { useForm } from 'react-hook-form';
 import { Spinner } from '@librechat/client';
@@ -100,33 +101,19 @@ function ChatView({ index = 0, project }: { index?: number; project?: TChatProje
       <ChatContext.Provider value={chatHelpers}>
         <AddedChatContext.Provider value={addedChatHelpers}>
           <Presentation>
-            <div className="personal-claude-chat relative flex h-full w-full flex-col">
-              <Header />
-              <>
-                <div
-                  className={cn(
-                    'personal-claude-thread flex flex-col',
-                    isLandingPage
-                      ? 'flex-1 items-center justify-end sm:justify-center'
-                      : 'h-full overflow-y-auto',
-                  )}
-                >
-                  {content}
-                  <div
-                    className={cn(
-                      'personal-claude-composer-wrap w-full',
-                      isLandingPage && 'max-w-3xl transition-all duration-200 xl:max-w-4xl',
-                    )}
-                  >
-                    {isProjectLandingPage && project && <ProjectLandingChip project={project} />}
-                    {isLandingPage && <ConversationStarters />}
-                    <ChatForm index={index} placeholder={chatFormPlaceholder} />
-                    {!isLandingPage && <Footer />}
-                  </div>
-                </div>
-                {isLandingPage && <Footer />}
-              </>
-            </div>
+            <ChatViewFrame
+              isLandingPage={isLandingPage}
+              header={<Header />}
+              content={content}
+              composer={
+                <>
+                  {isProjectLandingPage && project && <ProjectLandingChip project={project} />}
+                  {isLandingPage && <ConversationStarters />}
+                  <ChatForm index={index} placeholder={chatFormPlaceholder} />
+                </>
+              }
+              footer={<Footer />}
+            />
           </Presentation>
         </AddedChatContext.Provider>
       </ChatContext.Provider>
@@ -135,3 +122,43 @@ function ChatView({ index = 0, project }: { index?: number; project?: TChatProje
 }
 
 export default memo(ChatView);
+
+export function ChatViewFrame({
+  isLandingPage,
+  header,
+  content,
+  composer,
+  footer,
+}: {
+  isLandingPage: boolean;
+  header: ReactNode;
+  content: ReactNode;
+  composer: ReactNode;
+  footer: ReactNode;
+}) {
+  return (
+    <div className="personal-claude-chat relative flex h-full w-full flex-col">
+      {header}
+      <div
+        className={cn(
+          'personal-claude-thread flex flex-col',
+          isLandingPage
+            ? 'flex-1 items-center justify-end sm:justify-center'
+            : 'h-full overflow-y-auto',
+        )}
+      >
+        {content}
+        <div
+          className={cn(
+            'personal-claude-composer-wrap w-full',
+            isLandingPage && 'max-w-3xl transition-all duration-200 xl:max-w-4xl',
+          )}
+        >
+          {composer}
+          {!isLandingPage && footer}
+        </div>
+      </div>
+      {isLandingPage && footer}
+    </div>
+  );
+}

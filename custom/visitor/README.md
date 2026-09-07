@@ -1,25 +1,9 @@
-# ChatOne public visitor chat
+# Native ChatOne visitor mode
 
-`https://chat.jojoo.cc/visitor/` uses the shared ChatOne theme in an independent document. It never bootstraps the authenticated app, reads browser storage, or includes account credentials in its API requests. Messages live only in React state; reset aborts the current request and clears the page.
+`/visitor/` is a route in the normal ChatOne React application. It uses the same application entrypoint, router, theme, ChatViewFrame, ChatForm controls, message rendering and footer as ChatOne. There is no standalone HTML application or iframe.
 
-`packages/api/src/visitor/router.ts` is mounted at `/api/visitor`. Its strict input schema accepts only a question and up to six prior visitor questions. It does not use MongoDB, owner authentication, conversations, file uploads, model configuration APIs, tools, or search. A fixed subscription model selects fact IDs; its raw output is never sent to the browser. Unknown IDs, extra output fields and ungrounded prose are refused. HTTP errors are generic. There is a global concurrency limit, a 100-call daily budget, and a 20-call/10-minute IP budget (in-memory, reset on process restart).
+The visitor route is outside AuthLayout and Root. It never mounts the private sidebar, owner conversation loader, files, model selectors or tools. The visitor mutation uses only `/api/visitor/chat` with credentials omitted. Its messages are in memory and reset aborts pending work. The current public-only backend boundary remains in place; the planned resume knowledge base is separate future work.
 
-The read-only `knowledge` mount contains **only approved public facts**, and is re-read and validated on each request. Missing/invalid knowledge fails closed. The Jojoo Pages publisher updates that file atomically after a successful push. Publication failures do not replace the active facts. No private profile, environment file, credential or conversation database belongs in this directory.
+Build the normal frontend with `npm run build --workspace=client`. The parent Jojoo `scripts/build-visitor.mts` builds only the restricted server handler. The derived Dockerfile installs the standard frontend build and visitor handler over the existing ChatOne image. Normal full builds also contain this route.
 
-From the parent Jojoo project:
-
-```
-node --import tsx scripts/build-visitor.mts
-npx vitest run scripts/visitor.test.mts
-```
-
-The build copies the canonical public policy into `packages/api/src/visitor/policy` so normal LibreChat builds remain self-contained; edit the canonical Jojoo policy and rebuild instead of editing those generated files.
-
-To deploy only this feature without bundling other pending workspace edits, from LibreChat:
-
-```
-docker build -f custom/visitor/Dockerfile -t chatone-visitor:20260907 .
-docker compose up -d --no-deps api
-```
-
-The derived image preserves the existing ChatOne image and adds only the visitor middleware/artifacts. A normal full image build also includes these artifacts. The homepage launcher is maintained in the parent project's `src/ChatOneWidget.tsx`. Do not point it at the authenticated ChatOne root.
+The API's read-only knowledge mount contains approved public facts only. Owner authentication and conversation/file/model endpoints remain protected independently of the visitor UI. Do not expose or use the owner's authenticated routes as the visitor transport.

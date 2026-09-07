@@ -1,5 +1,5 @@
 import { memo, useRef, useMemo, useEffect, useState, useCallback } from 'react';
-import { useWatch } from 'react-hook-form';
+import { useWatch, useForm } from 'react-hook-form';
 import { TextareaAutosize } from '@librechat/client';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { Constants, isAssistantsEndpoint, isAgentsEndpoint } from 'librechat-data-provider';
@@ -502,3 +502,61 @@ function ChatFormWrapper({ index = 0, placeholder }: { index?: number; placehold
 ChatFormWrapper.displayName = 'ChatFormWrapper';
 
 export default ChatFormWrapper;
+
+export function VisitorChatForm({
+  busy,
+  onSubmit,
+  onStop,
+}: {
+  busy: boolean;
+  onSubmit: (text: string) => void;
+  onStop: () => void;
+}) {
+  const localize = useLocalize();
+  const methods = useForm<{ text: string }>({ defaultValues: { text: '' } });
+  const submit = methods.handleSubmit(({ text }) => {
+    if (!text.trim() || busy) return;
+    onSubmit(text.trim());
+    methods.reset();
+  });
+  return (
+    <form
+      onSubmit={submit}
+      className="personal-claude-form mx-auto flex w-full max-w-3xl flex-row gap-3 sm:mb-10 sm:px-2 xl:max-w-4xl"
+    >
+      <div className="relative flex h-full flex-1 items-stretch md:flex-col">
+        <div className="flex w-full items-center">
+          <div
+            data-testid="chat-composer"
+            className="relative flex w-full flex-grow flex-col overflow-hidden rounded-t-3xl border border-border-light bg-surface-chat pb-4 text-text-primary shadow-md transition-all duration-200 sm:rounded-3xl sm:pb-0"
+          >
+            <div className="relative flex-1">
+              <TextareaAutosize
+                {...methods.register('text', { required: true })}
+                rows={1}
+                maxLength={600}
+                data-testid="text-input"
+                aria-label={localize('com_ui_message_input')}
+                placeholder={localize('com_ui_chat_input_placeholder')}
+                className="m-0 max-h-[45vh] w-full resize-none bg-transparent px-5 py-[13px] placeholder-black/60 dark:placeholder-white/60 md:max-h-[55vh] md:py-3.5"
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
+                    event.preventDefault();
+                    void submit();
+                  }
+                }}
+              />
+            </div>
+            <div className="flex items-center justify-end px-2 pb-2">
+              {busy ? (
+                <StopButton stop={onStop} setShowStopButton={() => undefined} />
+              ) : (
+                <SendButton control={methods.control} disabled={busy} />
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  );
+}
