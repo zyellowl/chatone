@@ -1,18 +1,16 @@
-import { memo } from 'react';
 import { SquarePen } from 'lucide-react';
 import { TooltipAnchor } from '@librechat/client';
-import { useLocalize } from '~/hooks';
-import { useMediaQuery } from '@librechat/client';
-import { PermissionTypes, Permissions } from 'librechat-data-provider';
+import { memo } from 'react';
+import { Moon, Sun } from 'lucide-react';
+import { useTheme, useMediaQuery } from '@librechat/client';
 import { OpenSidebar } from './Menus';
-import { TemporaryChat } from './TemporaryChat';
-import { useHasAccess } from '~/hooks';
+import { useLocalize } from '~/hooks';
 
 function Header() {
-  const hasAccessToTemporaryChat = useHasAccess({
-    permissionType: PermissionTypes.TEMPORARY_CHAT,
-    permission: Permissions.USE,
-  });
+  const localize = useLocalize();
+  const { theme, setTheme } = useTheme();
+  const systemDark = useMediaQuery('(prefers-color-scheme: dark)');
+  const dark = theme === 'dark' || (theme === 'system' && systemDark);
 
   const isSmallScreen = useMediaQuery('(max-width: 768px)');
 
@@ -21,8 +19,18 @@ function Header() {
       <div className="mx-1 flex min-w-10 items-center">
         {isSmallScreen ? <OpenSidebar /> : null}
       </div>
-      <div className="mx-1 flex min-w-10 items-center justify-end">
-        {hasAccessToTemporaryChat === true && <TemporaryChat />}
+      <div className="mx-1 flex min-w-10 items-center justify-end gap-2">
+        <button
+          type="button"
+          data-testid="theme-toggle-button"
+          aria-label={localize('com_ui_toggle_theme')}
+          aria-pressed={dark}
+          title={localize('com_ui_toggle_theme')}
+          onClick={() => setTheme(dark ? 'light' : 'dark')}
+          className="flex size-10 shrink-0 items-center justify-center rounded-full text-text-secondary transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          {dark ? <Sun size={20} aria-hidden="true" /> : <Moon size={20} aria-hidden="true" />}
+        </button>
       </div>
     </header>
   );

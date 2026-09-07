@@ -105,7 +105,10 @@ jest.mock('~/hooks/AuthContext', () => ({
   useAuthContext: () => ({ token: 'test-token', isAuthenticated: true }),
 }));
 
+const mockAbortStream = jest.fn().mockResolvedValue({ success: true });
+
 jest.mock('~/data-provider', () => ({
+  abortStream: (...args: unknown[]) => mockAbortStream(...args),
   useGetStartupConfig: () => ({ data: { balance: { enabled: false } } }),
   useGetUserBalance: () => ({ refetch: jest.fn() }),
   queueTitleGeneration: jest.fn(),
@@ -162,6 +165,7 @@ jest.mock('librechat-data-provider', () => {
 });
 
 import useResumableSSE from '~/hooks/SSE/useResumableSSE';
+import { cancelSubmission } from '~/hooks/SSE/cancellation';
 
 const CONV_ID = 'conv-abc-123';
 
@@ -239,6 +243,7 @@ const advanceRetryTimer = async (ms: number) => {
 describe('useResumableSSE - 404 error path', () => {
   beforeEach(() => {
     mockSSEInstances.length = 0;
+    mockAbortStream.mockClear();
     localStorage.clear();
     mockErrorHandler.mockClear();
     mockFinalHandler.mockClear();
@@ -264,6 +269,36 @@ describe('useResumableSSE - 404 error path', () => {
   afterEach(() => {
     jest.useRealTimers();
   });
+
+  it.each([true, false])(
+    'only explicit stop cancels a stream created after cleanup (stopped: %s)',
+    async (stopped) => {
+      let resolveStart!: (value: { streamId: string }) => void;
+      (request.post as jest.Mock).mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveStart = resolve;
+          }),
+      );
+      const submission = buildSubmission();
+      const helpers = buildChatHelpers();
+      const { unmount } = renderHook(() => useResumableSSE(submission, helpers));
+      await waitFor(() => expect(request.post).toHaveBeenCalledTimes(1));
+      if (stopped) {
+        cancelSubmission(submission);
+      }
+      unmount();
+      await act(async () => {
+        resolveStart({ streamId: 'late-stream' });
+      });
+      expect(mockSSEInstances).toHaveLength(0);
+      if (stopped) {
+        expect(mockAbortStream).toHaveBeenCalledWith({ streamId: 'late-stream' });
+      } else {
+        expect(mockAbortStream).not.toHaveBeenCalled();
+      }
+    },
+  );
 
   const seedDraft = (conversationId: string) => {
     localStorage.setItem(`${LocalStorageKeys.TEXT_DRAFT}${conversationId}`, 'draft text');

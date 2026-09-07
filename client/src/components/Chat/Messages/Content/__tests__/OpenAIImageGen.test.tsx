@@ -23,10 +23,9 @@ jest.mock('~/components/Chat/Messages/Content/Image', () => ({
   ),
 }));
 
-jest.mock('@librechat/client', () => ({
-  PixelCard: ({ progress }: { progress: number }) => (
-    <div data-testid="pixel-card" data-progress={progress} />
-  ),
+jest.mock('~/custom/effects/GeneratingImage', () => ({
+  __esModule: true,
+  default: () => <div data-testid="image-generation" />,
 }));
 
 jest.mock('../ToolOutput', () => ({
@@ -87,16 +86,21 @@ describe('OpenAIImageGen', () => {
     });
   });
 
-  describe('PixelCard visibility', () => {
-    it('shows PixelCard when progress < 1', () => {
+  describe('ImageGeneration visibility', () => {
+    it('shows ImageGeneration when progress < 1', () => {
       render(<OpenAIImageGen {...defaultProps} initialProgress={0.5} />);
-      expect(screen.getByTestId('pixel-card')).toBeInTheDocument();
+      expect(screen.getByTestId('image-generation')).toBeInTheDocument();
     });
 
-    it('hides PixelCard when progress >= 1', () => {
+    it('hides ImageGeneration when progress >= 1', () => {
       render(<OpenAIImageGen {...defaultProps} initialProgress={1} isSubmitting={false} />);
-      expect(screen.queryByTestId('pixel-card')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('image-generation')).not.toBeInTheDocument();
     });
+  });
+
+  it('removes the generation animation when cancelled', () => {
+    render(<OpenAIImageGen {...defaultProps} initialProgress={0.5} isSubmitting={false} />);
+    expect(screen.queryByTestId('image-generation')).not.toBeInTheDocument();
   });
 
   describe('ToolIcon', () => {

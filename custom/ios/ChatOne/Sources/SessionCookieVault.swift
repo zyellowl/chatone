@@ -1,6 +1,67 @@
 import Foundation
 import Security
 
+#if DEBUG && targetEnvironment(simulator)
+enum SimulatorPreviewLogin {
+  static func cookies(for serverURL: URL) async throws -> [HTTPCookie]? {
+    let environment = ProcessInfo.processInfo.environment
+    let email = environment["CHATONE_PREVIEW_EMAIL"] ?? ""
+    let password = environment["CHATONE_PREVIEW_PASSWORD"] ?? ""
+    guard !email.isEmpty || !password.isEmpty else { return nil }
+    guard
+      !email.isEmpty, !password.isEmpty,
+      ["http", "https"].contains(serverURL.scheme?.lowercased() ?? ""),
+      ["127.0.0.1", "localhost", "[::1]", "::1"].contains(serverURL.host?.lowercased() ?? "")
+    else { throw PreviewError.invalidConfiguration }
+
+    let loginURL = serverURL.appendingPathComponent("api/auth/login")
+    var request = URLRequest(url: loginURL)
+    request.httpMethod = "POST"
+    request.timeoutInterval = 20
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.httpBody = try JSONSerialization.data(withJSONObject: ["email": email, "password": password])
+
+    let session = URLSession(
+      configuration: .ephemeral, delegate: LocalLoginDelegate(), delegateQueue: nil
+    )
+    defer { session.finishTasksAndInvalidate() }
+    let (_, response) = try await session.data(for: request)
+    guard (response as? HTTPURLResponse)?.statusCode == 200 else {
+      throw PreviewError.loginFailed
+    }
+    let cookies = session.configuration.httpCookieStorage?.cookies(for: loginURL) ?? []
+    guard cookies.contains(where: { $0.name == "refreshToken" && !$0.value.isEmpty }) else {
+      throw PreviewError.loginFailed
+    }
+    return cookies
+  }
+
+  private enum PreviewError: LocalizedError {
+    case invalidConfiguration
+    case loginFailed
+
+    var errorDescription: String? {
+      switch self {
+      case .invalidConfiguration:
+        return "模拟器预览需要本机服务器和完整的预览账号。"
+      case .loginFailed:
+        return "预览账号登录失败，请检查账号或使用普通登录。"
+      }
+    }
+  }
+
+  private final class LocalLoginDelegate: NSObject, URLSessionTaskDelegate {
+    func urlSession(
+      _ session: URLSession, task: URLSessionTask,
+      willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest,
+      completionHandler: @escaping (URLRequest?) -> Void
+    ) {
+      completionHandler(nil)
+    }
+  }
+}
+#endif
+
 enum SessionCookieVault {
   private static let service = "com.wsejoy.chatone.session-cookies"
   private static let authenticationCookieNames: Set<String> = [

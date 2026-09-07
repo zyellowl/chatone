@@ -217,6 +217,18 @@ describe('useMessageScrolling resize reconciliation', () => {
     ).IntersectionObserver = originalIntersectionObserver;
   });
 
+  it('reuses one visibility observer across repeated scrolling and disconnects it on unmount', () => {
+    const { unmount } = renderScrolling();
+    const initialObservers = [...MockIntersectionObserver.instances];
+    expect(initialObservers).toHaveLength(1);
+    for (let index = 0; index < 100; index++) {
+      fireEvent.scroll(screen.getByTestId('scrollable'));
+    }
+    expect(MockIntersectionObserver.instances).toHaveLength(1);
+    unmount();
+    expect(initialObservers[0].disconnect).toHaveBeenCalledTimes(1);
+  });
+
   it('scrolls to the bottom when streaming content resizes and auto-scroll is active', () => {
     renderScrolling();
 

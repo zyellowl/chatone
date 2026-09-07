@@ -6,6 +6,7 @@ import type { FocusEvent, FC } from 'react';
 import { useLocalize, useExpandCollapse } from '~/hooks';
 import { showThinkingAtom } from '~/store/showThinking';
 import { fontSizeAtom } from '~/store/fontSize';
+import Orb from '~/custom/effects/Orb';
 import { cn } from '~/utils';
 
 /**
@@ -37,6 +38,7 @@ export const ThinkingButton = memo(
     content,
     contentId,
     showCopyButton = true,
+    isThinking = false,
   }: {
     isExpanded: boolean;
     onClick: (e: MouseEvent<HTMLButtonElement>) => void;
@@ -44,6 +46,7 @@ export const ThinkingButton = memo(
     content?: string;
     contentId: string;
     showCopyButton?: boolean;
+    isThinking?: boolean;
   }) => {
     const localize = useLocalize();
     const fontSize = useAtomValue(fontSizeAtom);
@@ -74,18 +77,24 @@ export const ThinkingButton = memo(
             fontSize,
           )}
         >
-          <span className="relative mr-1.5 inline-flex h-[18px] w-[18px] items-center justify-center">
-            <Lightbulb
-              className="icon-sm absolute text-text-secondary opacity-100 transition-opacity group-hover/button:opacity-0"
-              aria-hidden="true"
-            />
-            <ChevronDown
-              className={cn(
-                'icon-sm absolute transform-gpu text-text-primary opacity-0 transition-all duration-300 group-hover/button:opacity-100',
-                isExpanded && 'rotate-180',
-              )}
-              aria-hidden="true"
-            />
+          <span className="relative mr-1.5 inline-flex size-5 shrink-0 items-center justify-center">
+            {isThinking ? (
+              <Orb state="solving" />
+            ) : (
+              <>
+                <Lightbulb
+                  className="icon-sm absolute text-text-secondary opacity-100 transition-opacity group-hover/button:opacity-0"
+                  aria-hidden="true"
+                />
+                <ChevronDown
+                  className={cn(
+                    'icon-sm absolute transform-gpu text-text-primary opacity-0 transition-all duration-300 group-hover/button:opacity-100',
+                    isExpanded && 'rotate-180',
+                  )}
+                  aria-hidden="true"
+                />
+              </>
+            )}
           </span>
           {label}
         </button>

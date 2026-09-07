@@ -1,5 +1,8 @@
 import * as React from 'react';
 import * as Ariakit from '@ariakit/react';
+import { X } from 'lucide-react';
+import { useMediaQuery } from '@librechat/client';
+import { useLocalize } from '~/hooks';
 import { cn } from '~/utils';
 
 export interface CustomMenuProps extends Ariakit.MenuButtonProps<'div'> {
@@ -31,11 +34,17 @@ export const CustomMenu = React.forwardRef<HTMLDivElement, CustomMenuProps>(func
   ref,
 ) {
   const parent = Ariakit.useMenuContext();
+  const localize = useLocalize();
+  const isMobile = useMediaQuery('(max-width: 767px)');
+  const hasCoarsePointer = useMediaQuery('(pointer: coarse)');
+  const menuRef = React.useRef<HTMLDivElement>(null);
+  const searchRef = React.useRef<HTMLInputElement>(null);
   const searchable = searchValue != null || !!onSearch || !!combobox;
+  const searchInitialFocus = isMobile || hasCoarsePointer ? menuRef : searchRef;
 
   const menuStore = Ariakit.useMenuStore({
     showTimeout: 100,
-    placement: parent ? 'right' : 'left',
+    placement: parent ? 'right-start' : 'top-start',
     defaultOpen: defaultOpen,
   });
 
@@ -58,9 +67,11 @@ export const CustomMenu = React.forwardRef<HTMLDivElement, CustomMenuProps>(func
         <Ariakit.MenuButtonArrow className="stroke-1 text-base opacity-75" />
       </Ariakit.MenuButton>
       <Ariakit.Menu
+        ref={menuRef}
+        initialFocus={searchable ? searchInitialFocus : undefined}
+        aria-label={comboboxLabel || localize('com_ui_select_model')}
         open={menuStore.useState('open')}
         portal
-        overlap
         unmountOnHide
         gutter={parent ? -4 : 4}
         className={cn(
@@ -69,32 +80,42 @@ export const CustomMenu = React.forwardRef<HTMLDivElement, CustomMenuProps>(func
           'w-[var(--menu-width,auto)] min-w-[300px] flex-col overflow-auto rounded-xl border border-border-light',
           'bg-presentation text-sm text-text-primary shadow-lg',
           parent ? 'px-0.5 py-0.5' : 'px-3 py-2',
-          'max-w-[calc(100vw-4rem)] sm:max-h-[calc(65vh)] sm:max-w-[400px]',
+          'max-w-[calc(100vw-2rem)] sm:max-h-[calc(65vh)] sm:max-w-[400px]',
           searchable && 'p-0',
         )}
       >
         <SearchableContext.Provider value={searchable}>
           {searchable ? (
             <>
-              <div className="sticky top-0 z-10 bg-inherit p-1">
-                <div className="relative">
-                  <Ariakit.Combobox
-                    autoSelect
-                    render={combobox}
-                    className={cn(
-                      'peer flex h-10 w-full items-center justify-center rounded-lg border-none bg-transparent px-2 text-base',
-                      'sm:h-8 sm:text-sm',
-                      'focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-primary',
-                    )}
-                  />
-                  {comboboxLabel && (
-                    <label className="pointer-events-none absolute left-2.5 top-2.5 text-sm text-text-secondary transition-all duration-200 peer-[:not(:placeholder-shown)]:-top-1.5 peer-[:not(:placeholder-shown)]:left-1.5 peer-[:not(:placeholder-shown)]:bg-presentation peer-[:not(:placeholder-shown)]:text-xs sm:top-1.5">
-                      {comboboxLabel}
-                    </label>
-                  )}
+              <div className="sticky top-0 z-10 border-b border-border-light bg-inherit p-3">
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <span className="text-sm font-semibold">{localize('com_ui_select_model')}</span>
+                  <button
+                    type="button"
+                    aria-label={localize('com_ui_close_menu')}
+                    onClick={() => menuStore.hide()}
+                    className="flex size-11 items-center justify-center rounded-lg text-text-secondary hover:bg-surface-active-alt focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary sm:size-8"
+                  >
+                    <X className="size-4" aria-hidden="true" />
+                  </button>
                 </div>
+                <Ariakit.Combobox
+                  ref={searchRef}
+                  autoSelect
+                  render={combobox}
+                  aria-label={comboboxLabel}
+                  placeholder={comboboxLabel}
+                  autoComplete="off"
+                  className={cn(
+                    'flex h-11 w-full items-center rounded-lg border border-border-light bg-surface-secondary px-3 text-base',
+                    'sm:h-9 sm:text-sm',
+                    'focus:outline-none focus:ring-2 focus:ring-primary',
+                  )}
+                />
               </div>
-              <Ariakit.ComboboxList className="p-0.5 pt-0">{children}</Ariakit.ComboboxList>
+              <Ariakit.ComboboxList className="p-1 [&_[role=option]]:min-h-11 sm:[&_[role=option]]:min-h-0">
+                {children}
+              </Ariakit.ComboboxList>
             </>
           ) : (
             children
@@ -164,11 +185,24 @@ export const CustomMenuItem = React.forwardRef<HTMLDivElement, CustomMenuItemPro
   function CustomMenuItem({ name, value, ...props }, ref) {
     const menu = Ariakit.useMenuContext();
     const searchable = React.useContext(SearchableContext);
+    const canHover = useMediaQuery('(hover: hover) and (pointer: fine)');
     const defaultProps: CustomMenuItemProps = {
       ref,
-      focusOnHover: true,
+      focusOnHover: canHover,
       blurOnHoverEnd: false,
       ...props,
+      onMouseDown: (event) => {
+        props.onMouseDown?.(event);
+        if (!searchable || event.defaultPrevented) {
+          return;
+        }
+        const target = event.target;
+        if (target instanceof Element && target.closest('button, a, input')) {
+          return;
+        }
+        // Keep the keyboard and popup stationary until the click selects the model.
+        event.preventDefault();
+      },
       className: cn(
         'relative flex cursor-default items-center gap-2 rounded-lg px-2 py-1 outline-none! scroll-m-1 scroll-mt-[calc(var(--combobox-height,0px)+var(--label-height,4px))] aria-disabled:opacity-25 data-[active-item]:bg-black/[0.075] data-[active-item]:text-black dark:data-[active-item]:bg-white/10 dark:data-[active-item]:text-white sm:text-sm min-w-0 w-full before:absolute before:left-0 before:top-1 before:bottom-1 before:w-0.5 before:bg-transparent before:rounded-full data-[active-item]:before:bg-black dark:data-[active-item]:before:bg-white',
         props.className,

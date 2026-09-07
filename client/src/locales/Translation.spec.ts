@@ -3,6 +3,7 @@ import {
   __resetLocaleForTests,
   __setLocaleLoaderForTests,
   changeLanguageSafely,
+  detectInitialLanguage,
   ensureLocale,
   initializeI18n,
   normalizeLocale,
@@ -81,6 +82,18 @@ describe('i18next translation tests', () => {
     expect(normalizeLocale('zh-Hant')).toBe('zh-Hant');
     expect(normalizeLocale('pt-BR')).toBe('pt-BR');
     expect(normalizeLocale('pt-PT')).toBe('pt-PT');
+  });
+
+  it('allows an embedded route to request its display language without changing stored preferences', () => {
+    const previousUrl = window.location.href;
+    localStorage.setItem('lang', JSON.stringify('en'));
+    window.history.replaceState({}, '', '/visitor/?embed=jojoo&lang=zh-Hans');
+
+    expect(detectInitialLanguage()).toBe('zh-Hans');
+    expect(localStorage.getItem('lang')).toBe(JSON.stringify('en'));
+
+    window.history.replaceState({}, '', previousUrl);
+    localStorage.removeItem('lang');
   });
 
   it('should reuse an in-flight locale load', async () => {

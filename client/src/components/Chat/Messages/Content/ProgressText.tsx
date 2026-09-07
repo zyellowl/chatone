@@ -1,5 +1,6 @@
 import { ChevronDown } from 'lucide-react';
 import * as Popover from '@radix-ui/react-popover';
+import Orb from '~/custom/effects/Orb';
 import CancelledIcon from './CancelledIcon';
 import { cn } from '~/utils';
 
@@ -97,7 +98,7 @@ export default function ProgressText({
         onClick={hasInput ? onClick : undefined}
         aria-expanded={hasInput ? isExpanded : undefined}
       >
-        {icon}
+        {showShimmer ? <Orb state="working" /> : icon}
         <span className={cn(showShimmer ? 'shimmer' : '', 'font-medium')}>{text}</span>
         {subtitle && <span className="font-normal text-text-secondary">{subtitle}</span>}
         {errorSuffix && (

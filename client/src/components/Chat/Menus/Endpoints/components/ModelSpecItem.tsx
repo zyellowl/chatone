@@ -54,6 +54,7 @@ export function ModelSpecItem({ spec, isSelected }: ModelSpecItemProps) {
       </div>
       <button
         type="button"
+        data-model-favorite
         tabIndex={isActive ? 0 : -1}
         onClick={handleFavoriteClick}
         aria-label={isFavorite ? localize('com_ui_unpin') : localize('com_ui_pin')}

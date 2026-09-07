@@ -86,11 +86,11 @@ private struct ServerSetupView: View {
         VStack(spacing: 26) {
           Spacer(minLength: 54)
 
-          Image(systemName: "message.and.waveform.fill")
-            .font(.system(size: 42, weight: .medium))
-            .foregroundStyle(AppPalette.accent)
+          Image("BrandLogo")
+            .resizable()
+            .scaledToFit()
             .frame(width: 88, height: 88)
-            .background(AppPalette.surface, in: RoundedRectangle(cornerRadius: 25))
+            .clipShape(RoundedRectangle(cornerRadius: 25))
 
           VStack(spacing: 8) {
             Text("连接 ChatOne")
@@ -181,8 +181,7 @@ private struct ChatContainer: View {
     VStack(spacing: 0) {
       NativeAppBar(
         state: state,
-        serverURL: serverURL,
-        onEditServer: onEditServer
+        onOpenSettings: { state.isShowingAppSettings = true }
       )
 
       ZStack {
@@ -192,6 +191,9 @@ private struct ChatContainer: View {
           ConnectionErrorView(message: error, retry: state.retry, editServer: onEditServer)
         }
       }
+    }
+    .sheet(isPresented: $state.isShowingAppSettings) {
+      NativeAppSettings(state: state, serverURL: serverURL, onEditServer: onEditServer)
     }
     .background(AppPalette.canvas)
     .ignoresSafeArea(.container, edges: .bottom)
@@ -235,63 +237,52 @@ extension UIColor {
 
 private struct NativeAppBar: View {
   @ObservedObject var state: WebViewState
-  let serverURL: URL
-  let onEditServer: () -> Void
+  let onOpenSettings: () -> Void
 
   var body: some View {
-    HStack(spacing: 10) {
+    ZStack {
       if state.isAuthPage {
         brand
       } else {
-        Button(action: perform(state.openSidebar)) {
-          Image(systemName: "sidebar.left")
-            .font(.system(size: 16, weight: .semibold))
-            .frame(width: 38, height: 38)
-        }
-        .accessibilityLabel("打开对话列表")
-
-        Spacer(minLength: 0)
-
         Text("ChatOne")
           .font(.system(size: 17, weight: .semibold, design: .rounded))
           .foregroundStyle(AppPalette.ink)
           .accessibilityAddTraits(.isHeader)
       }
 
-      Spacer(minLength: 0)
+      HStack {
+        if !state.isAuthPage {
+          Button(action: perform(state.openSidebar)) {
+            Image(systemName: "sidebar.left")
+              .font(.system(size: 16, weight: .semibold))
+              .frame(width: 38, height: 38)
+          }
+          .accessibilityLabel("打开对话列表")
+        }
 
-      if !state.isAuthPage {
-        Button(action: perform(state.newChat)) {
-          Image(systemName: "square.and.pencil")
-            .font(.system(size: 16, weight: .semibold))
-            .frame(width: 38, height: 38)
-        }
-        .accessibilityLabel("新建对话")
-      }
+        Spacer(minLength: 0)
 
-      Menu {
-        if state.canGoBack {
-          Button("后退", systemImage: "chevron.backward", action: perform(state.goBack))
+        if state.isAuthPage {
+          Button(action: onOpenSettings) {
+            Image(systemName: "gearshape")
+              .font(.system(size: 16, weight: .semibold))
+              .frame(width: 38, height: 38)
+          }
+          .accessibilityLabel("应用配置")
+        } else {
+          Button(action: perform(state.newChat)) {
+            Image(systemName: "square.and.pencil")
+              .font(.system(size: 16, weight: .semibold))
+              .frame(width: 38, height: 38)
+          }
+          .accessibilityLabel("新建对话")
         }
-        if state.canGoForward {
-          Button("前进", systemImage: "chevron.forward", action: perform(state.goForward))
-        }
-        Button("重新加载", systemImage: "arrow.clockwise", action: perform(state.retry))
-        Divider()
-        Button("修改服务器", systemImage: "server.rack", action: onEditServer)
-        Button("在 Safari 打开", systemImage: "safari") {
-          UIApplication.shared.open(serverURL)
-        }
-      } label: {
-        Image(systemName: "ellipsis")
-          .font(.system(size: 16, weight: .semibold))
-          .frame(width: 38, height: 38)
       }
-      .accessibilityLabel("应用菜单")
     }
     .foregroundStyle(AppPalette.muted)
     .buttonStyle(NativeBarButtonStyle())
     .padding(.horizontal, 10)
+    .frame(maxWidth: .infinity)
     .frame(height: 50)
     .background(AppPalette.canvas)
     .overlay(alignment: .bottom) {
@@ -311,11 +302,11 @@ private struct NativeAppBar: View {
 
   private var brand: some View {
     HStack(spacing: 9) {
-      Image(systemName: "message.and.waveform.fill")
-        .font(.system(size: 14, weight: .semibold))
-        .foregroundStyle(.white)
+      Image("BrandLogo")
+        .resizable()
+        .scaledToFit()
         .frame(width: 30, height: 30)
-        .background(AppPalette.accent, in: RoundedRectangle(cornerRadius: 9))
+        .clipShape(RoundedRectangle(cornerRadius: 9))
 
       Text("ChatOne")
         .font(.system(size: 17, weight: .semibold, design: .rounded))
@@ -329,6 +320,63 @@ private struct NativeAppBar: View {
     {
       UIImpactFeedbackGenerator(style: .soft).impactOccurred()
       action()
+    }
+  }
+}
+
+private struct NativeAppSettings: View {
+  @ObservedObject var state: WebViewState
+  let serverURL: URL
+  let onEditServer: () -> Void
+  @Environment(\.dismiss) private var dismiss
+  @State private var editServerOnDismiss = false
+
+  var body: some View {
+    NavigationStack {
+      List {
+        Section("连接") {
+          Button {
+            editServerOnDismiss = true
+            dismiss()
+          } label: {
+            Label("修改服务器", systemImage: "server.rack")
+          }
+          Text(serverURL.absoluteString)
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+        }
+        Section("浏览") {
+          if state.canGoBack {
+            Button("后退", systemImage: "chevron.backward") {
+              dismiss()
+              state.goBack()
+            }
+          }
+          if state.canGoForward {
+            Button("前进", systemImage: "chevron.forward") {
+              dismiss()
+              state.goForward()
+            }
+          }
+          Button("重新加载", systemImage: "arrow.clockwise") {
+            dismiss()
+            state.retry()
+          }
+          Button("在 Safari 打开", systemImage: "safari") {
+            UIApplication.shared.open(serverURL)
+          }
+        }
+      }
+      .navigationTitle("应用配置")
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbar {
+        ToolbarItem(placement: .confirmationAction) {
+          Button("完成") { dismiss() }
+        }
+      }
+    }
+    .onDisappear {
+      if editServerOnDismiss { onEditServer() }
     }
   }
 }

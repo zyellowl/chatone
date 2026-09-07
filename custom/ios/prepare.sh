@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="${0:A:h}"
-SOURCE_ICON="$SCRIPT_DIR/../macos/AppIcon-troll.png"
+SOURCE_ICON="$SCRIPT_DIR/artwork/feather-natural-quill.png"
 ICON_DIR="$SCRIPT_DIR/ChatOne/Assets.xcassets/AppIcon.appiconset"
 TEMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/chatone-ios-icons.XXXXXX")"
 MASTER_ICON="$TEMP_DIR/AppIcon-1024.png"

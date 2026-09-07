@@ -146,7 +146,7 @@ test('the Xcode target supports iPhone and iPad on iOS 16 or newer', async () =>
 
 test('the App Store icon preparation removes the alpha channel', async () => {
   const script = await read('custom/ios/prepare.sh');
-  assert.match(script, /AppIcon-troll\.png/);
+  assert.match(script, /artwork\/feather-natural-quill\.png/);
   assert.match(script, /-s format jpeg/);
   assert.match(script, /-s format png/);
 });

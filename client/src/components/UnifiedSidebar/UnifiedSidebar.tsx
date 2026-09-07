@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect, useRef, memo, startTransition } from 'react';
+import { useCallback, useState, useEffect, useRef, memo } from 'react';
 import type { ReactNode } from 'react';
 import { useRecoilState } from 'recoil';
 import { useForm } from 'react-hook-form';
@@ -6,6 +6,7 @@ import { useMediaQuery } from '@librechat/client';
 import type { ChatFormValues } from '~/common';
 import { ChatContext, ChatFormProvider, ActivePanelProvider } from '~/Providers';
 import useUnifiedSidebarLinks from '~/hooks/Nav/useUnifiedSidebarLinks';
+import useHistorySwipe from '~/hooks/Nav/useHistorySwipe';
 import { useChatHelpers, useLocalize } from '~/hooks';
 import Sidebar from './Sidebar';
 import ClaudeSidebarShell from '~/custom/claude/ClaudeSidebarShell';
@@ -41,7 +42,11 @@ function SidebarChatProvider({ children }: { children: ReactNode }) {
 function UnifiedSidebar() {
   const localize = useLocalize();
   const isSmallScreen = useMediaQuery('(max-width: 768px)');
+  const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+  const defaultTransitionMs = isSmallScreen ? 180 : TRANSITION_MS;
+  const transitionMs = reducedMotion ? 0 : defaultTransitionMs;
   const [expanded, setExpanded] = useRecoilState(store.sidebarExpanded);
+  useHistorySwipe(isSmallScreen, expanded, setExpanded);
   const [sidebarWidth, setSidebarWidth] = useState(getInitialWidth);
   const [isResizing, setIsResizing] = useState(false);
   const resizeHandlers = useRef<{ move: (e: MouseEvent) => void; up: () => void } | null>(null);
@@ -49,15 +54,11 @@ function UnifiedSidebar() {
   const links = useUnifiedSidebarLinks();
 
   const handleCollapse = useCallback(() => {
-    startTransition(() => {
-      setExpanded(false);
-    });
+    setExpanded(false);
   }, [setExpanded]);
 
   const handleExpand = useCallback(() => {
-    startTransition(() => {
-      setExpanded(true);
-    });
+    setExpanded(true);
   }, [setExpanded]);
 
   const handleResizeStart = useCallback(() => {
@@ -135,13 +136,14 @@ function UnifiedSidebar() {
     return (
       <>
         <div
+          data-testid="mobile-history-panel"
           className={cn(
             'fixed left-0 top-0 z-[110] flex h-full bg-surface-primary-alt',
             expanded ? 'translate-x-0' : '-translate-x-full',
           )}
           style={{
             width: 'min(85vw, 380px)',
-            transition: `transform ${TRANSITION_MS}ms ${EASING}`,
+            transition: `transform ${transitionMs}ms ${EASING}`,
           }}
           inert={!expanded ? '' : undefined}
         >
@@ -156,7 +158,7 @@ function UnifiedSidebar() {
             'fixed inset-0 z-[109] bg-black/50',
             expanded ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',
           )}
-          style={{ transition: `opacity ${TRANSITION_MS}ms ${EASING}` }}
+          style={{ transition: `opacity ${transitionMs}ms ${EASING}` }}
           role="presentation"
         >
           <button
@@ -181,7 +183,7 @@ function UnifiedSidebar() {
             maxWidth: expanded ? '40%' : COLLAPSED_WIDTH,
             transition: isResizing
               ? 'none'
-              : `width ${TRANSITION_MS}ms ${EASING}, min-width ${TRANSITION_MS}ms ${EASING}, max-width ${TRANSITION_MS}ms ${EASING}`,
+              : `width ${transitionMs}ms ${EASING}, min-width ${transitionMs}ms ${EASING}, max-width ${transitionMs}ms ${EASING}`,
           }}
           aria-label={localize('com_nav_control_panel')}
         >

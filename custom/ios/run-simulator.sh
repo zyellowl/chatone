@@ -38,6 +38,8 @@ fi
 open -a Simulator
 xcrun simctl bootstatus "$DEVICE_ID" -b
 xcrun simctl install "$DEVICE_ID" "$APP_PATH"
-xcrun simctl launch "$DEVICE_ID" "$BUNDLE_ID"
+SIMCTL_CHILD_CHATONE_PREVIEW_EMAIL="${CHATONE_PREVIEW_EMAIL:-}" \
+SIMCTL_CHILD_CHATONE_PREVIEW_PASSWORD="${CHATONE_PREVIEW_PASSWORD:-}" \
+  xcrun simctl launch --terminate-running-process "$DEVICE_ID" "$BUNDLE_ID"
 
 echo "Launched ChatOne on Simulator $DEVICE_ID"

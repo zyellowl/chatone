@@ -1,4 +1,3 @@
-import { startTransition } from 'react';
 import { useSetRecoilState } from 'recoil';
 import { TooltipAnchor, Button, Sidebar } from '@librechat/client';
 import { useShortcutAriaKey, useShortcutHint } from '~/hooks/useKeyboardShortcuts';
@@ -16,9 +15,8 @@ export default function OpenSidebar({ className }: { className?: string }) {
   const ariaKey = useShortcutAriaKey('toggleSidebar');
 
   const handleClick = () => {
-    startTransition(() => {
-      setSidebarExpanded(true);
-    });
+    (document.activeElement as HTMLElement | null)?.blur();
+    setSidebarExpanded(true);
     setTimeout(() => {
       document.getElementById(CLOSE_SIDEBAR_ID)?.focus();
     }, 250);

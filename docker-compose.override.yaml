@@ -20,7 +20,7 @@ services:
       - chatone_meilisearch:/data/meilisearch
   api:
     container_name: ChatOne
-    image: chatone-visitor:20260907
+    image: chatone-visitor:widget-compact-20260907
     build:
       context: .
       target: node

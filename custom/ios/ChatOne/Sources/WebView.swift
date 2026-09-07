@@ -2,6 +2,10 @@ import SwiftUI
 import UIKit
 import WebKit
 
+final class ChatContentWebView: WKWebView {
+  override var inputAccessoryView: UIView? { nil }
+}
+
 @MainActor
 final class WebViewState: ObservableObject {
   @Published var isLoading = true
@@ -9,6 +13,7 @@ final class WebViewState: ObservableObject {
   @Published var canGoBack = false
   @Published var canGoForward = false
   @Published var isAuthPage = true
+  @Published var isShowingAppSettings = false
   @Published var routePath = "/"
 
   fileprivate var reloadAction: (() -> Void)?
@@ -65,10 +70,10 @@ struct ChatWebView: UIViewRepresentable {
     configuration.userContentController.addUserScript(appModeScript)
     configuration.userContentController.add(context.coordinator, name: "chatOneNative")
 
-    let webView = WKWebView(frame: .zero, configuration: configuration)
+    let webView = ChatContentWebView(frame: .zero, configuration: configuration)
     webView.navigationDelegate = context.coordinator
     webView.uiDelegate = context.coordinator
-    webView.allowsBackForwardNavigationGestures = true
+    webView.allowsBackForwardNavigationGestures = false
     webView.allowsLinkPreview = false
     webView.isOpaque = false
     Self.applyAppearance(colorScheme, to: webView)
@@ -94,11 +99,25 @@ struct ChatWebView: UIViewRepresentable {
     }
     state.newChatAction = { [weak webView] in
       guard let newChatURL = URL(string: "/c/new", relativeTo: serverURL)?.absoluteURL else { return }
-      webView?.load(URLRequest(url: newChatURL))
+      webView?.evaluateJavaScript("""
+        (() => {
+          const button = document.querySelector('[data-testid="chatone-new-chat"], [data-testid="new-chat-button"]');
+          if (!button) return false;
+          document.activeElement?.blur();
+          button.click();
+          return true;
+        })();
+        """) { [weak webView] result, _ in
+          if result as? Bool != true {
+            webView?.load(URLRequest(url: newChatURL))
+          }
+        }
     }
     context.coordinator.restoreSessionAndLoad(webView)
     return webView
   }
+
+  private static let brandLogoBase64 = UIImage(named: "BrandLogo")?.pngData()?.base64EncodedString() ?? ""
 
   private static let appModeSource = """
       (() => {
@@ -256,6 +275,19 @@ struct ChatWebView: UIViewRepresentable {
             border-radius: 12px !important;
           }
 
+          html.chatone-app .personal-claude-form .chatone-metal-decoration {
+            display: none !important;
+          }
+
+          html.chatone-app .personal-claude-form .chatone-touch-metal,
+          html.chatone-app .personal-claude-form [data-testid='send-button'] {
+            background: transparent !important;
+            border-color: transparent !important;
+            box-shadow: none !important;
+            -webkit-appearance: none;
+            appearance: none;
+          }
+
           html.chatone-app .personal-claude-landing {
             padding: 0 20px clamp(36px, 7vh, 62px) !important;
           }
@@ -335,7 +367,7 @@ struct ChatWebView: UIViewRepresentable {
             height: 58px;
             margin-bottom: 26px;
             border-radius: 17px;
-            background: var(--chatone-native-logo-surface) url('/assets/logo.svg?v=claude') center / 38px 38px no-repeat;
+            background: var(--chatone-native-logo-surface) url('data:image/png;base64,\(brandLogoBase64)') center / 48px 48px no-repeat;
             box-shadow: inset 0 0 0 1px var(--chatone-native-logo-line), 0 10px 28px var(--chatone-native-logo-shadow);
             content: '';
           }
@@ -378,6 +410,35 @@ struct ChatWebView: UIViewRepresentable {
           html.chatone-auth main label {
             background: transparent !important;
             color: var(--chatone-native-muted) !important;
+          }
+
+          html.chatone-auth main input.peer ~ label {
+            top: 50% !important;
+            inset-inline-start: 16px !important;
+            padding: 0 !important;
+            font-size: 17px !important;
+            line-height: 18px !important;
+            transform: translateY(-50%) !important;
+            pointer-events: none;
+          }
+
+          html.chatone-auth main input.peer:focus ~ label,
+          html.chatone-auth main input.peer:not(:placeholder-shown) ~ label {
+            top: 7px !important;
+            font-size: 12px !important;
+            line-height: 14px !important;
+            transform: none !important;
+          }
+
+          html.chatone-auth main input.peer:focus,
+          html.chatone-auth main input.peer:not(:placeholder-shown) {
+            padding-top: 23px !important;
+            padding-bottom: 5px !important;
+            line-height: 22px !important;
+          }
+
+          html.chatone-auth main input.peer[name='password'] {
+            padding-inline-end: 48px !important;
           }
 
           html.chatone-auth main [data-testid='login-button'] {
@@ -426,6 +487,23 @@ struct ChatWebView: UIViewRepresentable {
           }
         `;
         root.appendChild(style);
+
+        const installAppSettings = () => {
+          const sidebar = document.querySelector('.chatone-settings [role="tablist"]');
+          if (!sidebar || sidebar.parentElement.querySelector('[data-chatone-app-settings]')) return;
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.dataset.chatoneAppSettings = 'true';
+          button.className = 'flex min-h-11 items-center justify-between rounded-xl px-3 py-2.5 text-sm text-text-secondary hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+          button.textContent = '应用配置';
+          button.addEventListener('click', () => {
+            window.webkit?.messageHandlers?.chatOneNative?.postMessage({ type: 'settings' });
+          });
+          sidebar.after(button);
+        };
+        const settingsObserver = new MutationObserver(installAppSettings);
+        settingsObserver.observe(root, { childList: true, subtree: true });
+        installAppSettings();
 
         const updateRoute = () => {
           const path = window.location.pathname || '/';
@@ -513,7 +591,20 @@ struct ChatWebView: UIViewRepresentable {
       let savedCookies = SessionCookieVault.load(for: serverURL)
       Task { @MainActor [weak self, weak webView] in
         guard let self, let webView else { return }
-        for cookie in savedCookies {
+        var cookies = savedCookies
+        #if DEBUG && targetEnvironment(simulator)
+        do {
+          if let previewCookies = try await SimulatorPreviewLogin.cookies(for: self.serverURL) {
+            cookies = previewCookies
+            SessionCookieVault.save(previewCookies, for: self.serverURL)
+          }
+        } catch {
+          self.state.isLoading = false
+          self.state.errorMessage = error.localizedDescription
+          return
+        }
+        #endif
+        for cookie in cookies {
           await cookieStore.setCookie(cookie)
         }
         cookieStore.add(self)
@@ -648,10 +739,19 @@ struct ChatWebView: UIViewRepresentable {
     ) {
       guard
         message.name == "chatOneNative",
-        let payload = message.body as? [String: Any],
-        payload["type"] as? String == "route"
+        message.frameInfo.isMainFrame,
+        let messageURL = message.frameInfo.request.url,
+        messageURL.scheme == serverURL.scheme,
+        messageURL.host == serverURL.host,
+        messageURL.port == serverURL.port,
+        let payload = message.body as? [String: Any]
       else { return }
 
+      if payload["type"] as? String == "settings" {
+        state.isShowingAppSettings = true
+        return
+      }
+      guard payload["type"] as? String == "route" else { return }
       state.routePath = payload["path"] as? String ?? "/"
       state.isAuthPage = payload["isAuth"] as? Bool ?? false
     }

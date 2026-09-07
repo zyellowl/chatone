@@ -50,8 +50,9 @@ test('favorite registry models exist in the generated catalog', async () => {
   const registry = JSON.parse(await read('custom/model-registry.json'));
   const config = await read('librechat.yaml');
   const favorites = registry.models.filter((model) => model.enabled && model.favorite);
-  assert.equal(favorites.length, 7);
-  assert.equal(favorites[0].id, 'gpt-5.6-sol');
+  assert.equal(favorites.length, 8);
+  assert.equal(favorites[0].id, 'gpt-6-astra');
+  assert.equal(favorites.find((model) => model.softDefault)?.id, 'gpt-5.6-sol');
   favorites.forEach((model) => assert.match(config, new RegExp(model.id.replaceAll('/', '\\/'))));
 });
 
@@ -135,13 +136,18 @@ test('custom UI stays isolated behind one stylesheet import', async () => {
   const composer = await read('client/src/components/Chat/Input/ChatForm.tsx');
   const landing = await read('client/src/components/Chat/Landing.tsx');
   const styles = await read('client/src/custom/zenmux.css');
+  const librariesStyles = await read('client/src/custom/libraries.css');
   assert.match(entry, /custom\/zenmux\.css/);
+  assert.match(entry, /custom\/libraries\.css/);
   assert.match(composer, /data-testid="chat-composer"/);
+  assert.match(composer, /<Beam engaged=/);
   assert.match(landing, /<h1/);
   assert.doesNotMatch(landing, /<SplitText/);
   assert.match(styles, /--pa-canvas:/);
   assert.match(styles, /--pa-font-display:/);
   assert.match(styles, /nav\[aria-keyshortcuts='Shift\+Alt\+M'\]/);
+  assert.match(librariesStyles, /--lib-canvas:/);
+  assert.match(librariesStyles, /\.chatone-touch-metal/);
 });
 
 test('the Claude-like navigation stays focused on chat, search, projects, and account', async () => {
@@ -152,7 +158,7 @@ test('the Claude-like navigation stays focused on chat, search, projects, and ac
   const searchBar = await read('client/src/components/Nav/SearchBar.tsx');
   const composeOverride = await read('docker-compose.override.yaml');
   assert.match(shell, /data-testid="nav-search-input"/);
-  assert.match(shell, /\/assets\/logo\.svg\?v=claude/);
+  assert.match(shell, /\/assets\/chatone-logo\.png\?v=feather-20260907/);
   assert.match(shell, /to="\/projects"/);
   assert.doesNotMatch(shell, /workspace|usage-nav-button|com_nav_customize|com_usage_nav/);
   assert.doesNotMatch(collapsed, /workspace|LayoutDashboard|MessageSquare/);
@@ -160,6 +166,12 @@ test('the Claude-like navigation stays focused on chat, search, projects, and ac
   assert.match(conversations, /search\.isSearching \|\| search\.query/);
   assert.match(searchBar, /chatone-search-field/);
   assert.match(composeOverride, /SEARCH: 'true'/);
+});
+
+test('visitor deployment keeps the pinned ChatOne UI instead of replacing client assets', async () => {
+  const dockerfile = await read('custom/visitor/Dockerfile');
+  assert.match(dockerfile, /ARG CHATONE_UI_IMAGE=chatone-librechat:ui-widget-20260907/);
+  assert.doesNotMatch(dockerfile, /COPY.*client\/dist/);
 });
 
 test('jojoo.cc management has no route or navigation entry in ChatOne', async () => {

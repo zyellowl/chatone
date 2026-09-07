@@ -1,7 +1,8 @@
 # ChatGPT subscription model bridge
 
 This local-only service reuses Pi's open-source `openai-codex-responses` provider
-as one small OpenAI-compatible endpoint for LibreChat. It calls `gpt-5.6-sol`
+as one small OpenAI-compatible endpoint for LibreChat. It supports `gpt-6-astra`
+and defaults to `gpt-5.6-sol`
 through the ChatGPT subscription request layer without launching the Codex CLI,
 so the model receives LibreChat's conversation and system prompt directly. It
 supports real token streaming, cancellation, text, inline images, token usage, and server-side web
@@ -64,9 +65,15 @@ curl http://127.0.0.1:4317/health
 Install or update the persistent user service:
 
 ```bash
+npm install --global --prefix "$HOME/Library/Application Support/ChatOne/pi-runtime" @earendil-works/pi-coding-agent@0.85.1
 zsh custom/codex-bridge/install-launch-agent.sh
 curl http://127.0.0.1:4317/v1/subscription/usage
 ```
+
+The installer prefers this private runtime, keeping ChatOne's model catalog
+current without changing the shared Pi installation. Pi 0.85.1 includes GPT-6
+Astra in its subscription catalog. Models also need an enabled entry in
+`custom/model-registry.json` and the corresponding `librechat.yaml` model spec.
 
 It runs only while this macOS user is logged in and starts again at login. To
 remove it, use `zsh custom/codex-bridge/uninstall-launch-agent.sh`; the installed

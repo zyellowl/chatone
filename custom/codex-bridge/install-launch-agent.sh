@@ -24,6 +24,7 @@ done
 
 PI_PACKAGE_ROOT=""
 for candidate in \
+  "$HOME/Library/Application Support/ChatOne/pi-runtime/lib/node_modules/@earendil-works/pi-coding-agent" \
   /opt/homebrew/lib/node_modules/@earendil-works/pi-coding-agent \
   /usr/local/lib/node_modules/@earendil-works/pi-coding-agent; do
   if [[ -f "$candidate/node_modules/@earendil-works/pi-ai/dist/index.js" ]]; then

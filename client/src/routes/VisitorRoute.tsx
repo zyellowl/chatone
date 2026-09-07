@@ -15,6 +15,7 @@ type VisitorMessage = { isCreatedByUser: boolean; text: string };
 
 export default function VisitorRoute() {
   const localize = useLocalize();
+  const embedded = new URLSearchParams(window.location.search).get('embed') === 'jojoo';
   const [messages, setMessages] = useState<VisitorMessage[]>([]);
   const [busy, setBusy] = useState(false);
   const [generation, setGeneration] = useState(0);
@@ -61,56 +62,71 @@ export default function VisitorRoute() {
     }
   }
 
+  const content =
+    messages.length === 0 ? (
+      <VisitorLanding compact={embedded} />
+    ) : (
+      <MinimalMessages>
+        <div
+          role="log"
+          aria-live="polite"
+          className={
+            embedded ? 'chatone-visitor-messages' : 'mx-auto w-full max-w-3xl pt-14 xl:max-w-4xl'
+          }
+        >
+          {messages.map((message, index) => (
+            <div
+              key={index}
+              className={`group relative w-full px-5 py-4 ${message.isCreatedByUser ? 'user-turn' : 'assistant-turn'}`}
+            >
+              <div className="chatone-message-body message-render">
+                <Container>
+                  {message.isCreatedByUser ? (
+                    <div className="whitespace-pre-wrap">{message.text}</div>
+                  ) : (
+                    <MarkdownLite content={message.text} codeExecution={false} />
+                  )}
+                </Container>
+              </div>
+            </div>
+          ))}
+          {busy && (
+            <div role="status" className="px-5 py-4">
+              <Spinner />
+            </div>
+          )}
+          <div ref={bottom} />
+        </div>
+      </MinimalMessages>
+    );
+
+  const composer = <VisitorChatForm key={generation} busy={busy} onSubmit={submit} onStop={stop} />;
+
   return (
     <div
-      className="relative flex h-dvh w-full overflow-hidden bg-presentation"
+      className={[
+        'chatone-visitor-route relative flex h-dvh w-full overflow-hidden bg-presentation',
+        embedded ? 'is-embedded' : '',
+      ].join(' ')}
       data-testid="visitor-chat-route"
+      data-embedded={embedded || undefined}
     >
       <main className="flex h-full w-full flex-col overflow-y-auto">
-        <ChatViewFrame
-          isLandingPage={messages.length === 0}
-          header={<VisitorHeader onReset={reset} />}
-          content={
-            messages.length === 0 ? (
-              <VisitorLanding />
-            ) : (
-              <MinimalMessages>
-                <div
-                  role="log"
-                  aria-live="polite"
-                  className="mx-auto w-full max-w-3xl pt-14 xl:max-w-4xl"
-                >
-                  {messages.map((message, index) => (
-                    <div
-                      key={index}
-                      className={`group relative w-full px-5 py-4 ${message.isCreatedByUser ? 'user-turn' : 'assistant-turn'}`}
-                    >
-                      <div className="chatone-message-body message-render">
-                        <Container>
-                          {message.isCreatedByUser ? (
-                            <div className="whitespace-pre-wrap">{message.text}</div>
-                          ) : (
-                            <MarkdownLite content={message.text} codeExecution={false} />
-                          )}
-                        </Container>
-                      </div>
-                    </div>
-                  ))}
-                  {busy && (
-                    <div role="status" className="px-5 py-4">
-                      <Spinner />
-                    </div>
-                  )}
-                  <div ref={bottom} />
-                </div>
-              </MinimalMessages>
-            )
-          }
-          composer={
-            <VisitorChatForm key={generation} busy={busy} onSubmit={submit} onStop={stop} />
-          }
-          footer={<Footer startupConfig={null} />}
-        />
+        {embedded ? (
+          <div className="chatone-visitor-embed-shell">
+            {messages.length > 0 && <VisitorHeader onReset={reset} />}
+            <div className="chatone-visitor-embed-content">{content}</div>
+            <div className="chatone-visitor-embed-composer">{composer}</div>
+          </div>
+        ) : (
+          <ChatViewFrame
+            isLandingPage={messages.length === 0}
+            header={<VisitorHeader onReset={reset} />}
+            content={content}
+            composer={composer}
+            footer={<Footer startupConfig={null} />}
+          />
+        )}
       </main>
     </div>
   );

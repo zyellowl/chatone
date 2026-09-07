@@ -16,6 +16,10 @@ The scripts discover Xcode in either `/Applications/Xcode.app` or
 
 ## Prepare and build
 
+The iOS app icon uses `artwork/feather-natural-quill.png`, based on the website's blue-green
+feather with reduced padding and a restored slender quill. `ios:prepare` generates
+the opaque iPhone, iPad, and App Store icon sizes without cropping the quill.
+
 ```bash
 npm run ios:prepare
 npm run ios:build
@@ -25,6 +29,13 @@ npm run ios:run
 `ios:run` builds, boots an available iPhone Simulator, installs the app, and launches it. You can
 also open `custom/ios/ChatOne.xcodeproj` in Xcode and run the `ChatOne` scheme manually. The
 simulator defaults to `http://127.0.0.1:3080`, which reaches the Mac-hosted Docker service.
+
+For the first Simulator preview, supply an existing ordinary preview account using the
+`CHATONE_PREVIEW_EMAIL` and `CHATONE_PREVIEW_PASSWORD` environment variables when running
+`npm run ios:run`. The Debug Simulator build signs in through `/api/auth/login` and saves the
+resulting session in its cookie vault. Later launches restore that session without these variables.
+This option only accepts loopback servers, refuses redirects, and is absent from Release and
+physical-device builds. It does not enable registration or change server authentication.
 
 The iPhone never receives OpenAI OAuth or ZenMux credentials. It talks only to LibreChat; GPT calls
 then pass through the Mac's loopback-only ChatGPT subscription bridge.
@@ -49,7 +60,9 @@ the home network, place LibreChat behind HTTPS or a private VPN such as Tailscal
 
 - Persistent LibreChat login and conversation state through `WKWebsiteDataStore.default()`.
 - A native server preflight check before saving the address.
-- A native app bar for conversation history, new chat, reload, server settings and Safari handoff.
+- A centered native ChatOne title with conversation history and new chat buttons.
+- Settings → 应用配置 contains server address, reload, history navigation and Safari handoff.
+  The sign-in screen retains an app-settings button so the server can be changed before login.
 - Route-aware iPhone layouts for authentication, conversations, composer controls, menus and dialogs.
 - Interactive keyboard dismissal with 16-point-or-larger web inputs to prevent focus zoom.
 - Camera, microphone, photo-library and document upload permission descriptions.

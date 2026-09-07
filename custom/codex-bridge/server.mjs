@@ -48,6 +48,10 @@ const piAuthFile =
   path.join(homedir(), 'Library/Application Support/ChatOne/auth/openai.json');
 const piPackageCandidates = [
   process.env.PI_PACKAGE_ROOT,
+  path.join(
+    homedir(),
+    'Library/Application Support/ChatOne/pi-runtime/lib/node_modules/@earendil-works/pi-coding-agent',
+  ),
   '/opt/homebrew/lib/node_modules/@earendil-works/pi-coding-agent',
   '/usr/local/lib/node_modules/@earendil-works/pi-coding-agent',
 ].filter(Boolean);

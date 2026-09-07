@@ -194,6 +194,14 @@ function getNavigatorLanguage() {
   return navigator.language || navigator.languages?.[0] || 'en';
 }
 
+function readQueryLanguage() {
+  if (typeof window === 'undefined') {
+    return undefined;
+  }
+
+  return new URLSearchParams(window.location.search).get('lang') ?? undefined;
+}
+
 export function normalizeLocale(locale?: string | null): SupportedLocale {
   const requested = locale === 'auto' ? getNavigatorLanguage() : locale;
   if (!requested) {
@@ -216,9 +224,10 @@ export function normalizeLocale(locale?: string | null): SupportedLocale {
 }
 
 export function detectInitialLanguage() {
+  const queryLang = readQueryLanguage();
   const cookieLang = readCookie('lang');
   const storedLang = readStoredLanguage();
-  return normalizeLocale(cookieLang || storedLang || getNavigatorLanguage());
+  return normalizeLocale(queryLang || cookieLang || storedLang || getNavigatorLanguage());
 }
 
 export async function ensureLocale(locale?: string | null): Promise<SupportedLocale> {

@@ -38,7 +38,9 @@ import {
   useGetStartupConfig,
   queueTitleGeneration,
   streamStatusQueryKey,
+  abortStream,
 } from '~/data-provider';
+import { isSubmissionCancelled } from './cancellation';
 import useEventHandlers, { buildCreatedInitialResponse } from './useEventHandlers';
 import { useAuthContext } from '~/hooks/AuthContext';
 import useUsageHandler from './useUsageHandler';
@@ -1128,6 +1130,14 @@ export default function useResumableSSE(
         try {
           // Use request.post which handles auth token refresh via axios interceptors
           const data = (await request.post(url, payload)) as { streamId: string };
+          // A stop can arrive before the POST assigns a stream ID. Navigation
+          // also aborts this signal, so only an explicit stop cancels the job.
+          if (isSubmissionCancelled(currentSubmission)) {
+            await abortStream({ streamId: data.streamId }).catch((error) => {
+              console.error('[ResumableSSE] Failed to cancel pending generation:', error);
+            });
+            return null;
+          }
           if (signal?.aborted) {
             return null;
           }

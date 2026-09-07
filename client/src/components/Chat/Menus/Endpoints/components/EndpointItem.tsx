@@ -197,7 +197,7 @@ export function EndpointItem({ endpoint, endpointIndex }: EndpointItemProps) {
         key={`endpoint-${endpoint.value}-item`}
         searchValue={searchValue}
         onSearch={(value) => setEndpointSearchValue(endpoint.value, value)}
-        combobox={<input placeholder=" " />}
+        combobox={<input />}
         comboboxLabel={placeholder}
         onClick={() => handleSelectEndpoint(endpoint)}
         label={

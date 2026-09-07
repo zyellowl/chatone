@@ -126,7 +126,7 @@ export default function ProjectWorkspace() {
   }
 
   return (
-    <main className="flex h-full min-h-0 flex-col overflow-y-auto bg-surface-primary text-text-primary">
+    <main className="chatone-projects flex h-full min-h-0 flex-col overflow-y-auto bg-surface-primary text-text-primary">
       <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-4 pb-10 pt-4 md:px-6 lg:pt-8">
         <button
           type="button"

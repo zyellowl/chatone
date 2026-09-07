@@ -139,7 +139,7 @@ export default function Message(props: TMessageProps) {
                 </h2>
               )}
               <div className="flex flex-col gap-1">
-                <div className="flex min-h-[20px] max-w-full flex-grow flex-col gap-0">
+                <div className="chatone-message-body flex min-h-[20px] max-w-full flex-grow flex-col gap-0">
                   <ContentParts
                     edit={edit}
                     isLast={isLast}

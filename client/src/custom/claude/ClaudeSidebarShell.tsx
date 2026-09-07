@@ -1,6 +1,6 @@
 import { lazy, memo, Suspense, useCallback } from 'react';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
-import { Link } from 'react-router-dom';
+import { NavLink as RouterNavLink } from 'react-router-dom';
 import { QueryKeys } from 'librechat-data-provider';
 import { useQueryClient } from '@tanstack/react-query';
 import { FolderKanban, PanelLeftClose, Search, SquarePen } from 'lucide-react';
@@ -20,13 +20,17 @@ function ClaudeSidebarShell({ links, onCollapse }: { links: NavLink[]; onCollaps
   const { newConversation } = useNewConvo();
   const conversation = useRecoilValue(store.conversationByIndex(0));
   const setSearchState = useSetRecoilState(store.search);
+  const searchEnabled = useRecoilValue(store.search).enabled;
 
   const startNewChat = useCallback(() => {
     clearMessagesCache(queryClient, conversation?.conversationId);
     queryClient.invalidateQueries([QueryKeys.messages]);
     newConversation();
     setActive(DEFAULT_PANEL);
-  }, [conversation?.conversationId, newConversation, queryClient, setActive]);
+    if (window.matchMedia('(max-width: 767px)').matches) {
+      onCollapse();
+    }
+  }, [conversation?.conversationId, newConversation, onCollapse, queryClient, setActive]);
 
   const openSearch = useCallback(() => {
     setActive(DEFAULT_PANEL);
@@ -41,7 +45,7 @@ function ClaudeSidebarShell({ links, onCollapse }: { links: NavLink[]; onCollaps
       <div className="personal-claude-sidebar-header">
         <div className="personal-claude-sidebar-brand">
           <span className="personal-claude-mark" aria-hidden="true">
-            <img src="/assets/logo.svg?v=claude" alt="" draggable={false} />
+            <img src="/assets/chatone-logo.png?v=feather-20260907" alt="" draggable={false} />
           </span>
           <span>{localize('com_ui_chatone')}</span>
         </div>
@@ -56,22 +60,36 @@ function ClaudeSidebarShell({ links, onCollapse }: { links: NavLink[]; onCollaps
       </div>
 
       <div className="personal-claude-sidebar-actions">
-        <button type="button" className="personal-claude-new-chat" onClick={startNewChat}>
+        <button
+          type="button"
+          data-testid="chatone-new-chat"
+          className="personal-claude-new-chat"
+          onClick={startNewChat}
+        >
           <SquarePen aria-hidden="true" />
           <span>{localize('com_ui_new_chat')}</span>
         </button>
-        <button type="button" className="personal-claude-nav-row" onClick={openSearch}>
-          <Search aria-hidden="true" />
-          <span>{localize('com_ui_search')}</span>
-        </button>
-        <Link
+        {searchEnabled && (
+          <button type="button" className="personal-claude-nav-row" onClick={openSearch}>
+            <Search aria-hidden="true" />
+            <span>{localize('com_ui_search')}</span>
+          </button>
+        )}
+        <RouterNavLink
           to="/projects"
-          className="personal-claude-nav-row"
-          onClick={() => setActive(DEFAULT_PANEL)}
+          className={({ isActive }) =>
+            isActive ? 'personal-claude-nav-row active' : 'personal-claude-nav-row'
+          }
+          onClick={() => {
+            setActive(DEFAULT_PANEL);
+            if (window.matchMedia('(max-width: 767px)').matches) {
+              onCollapse();
+            }
+          }}
         >
           <FolderKanban aria-hidden="true" />
           <span>{localize('com_ui_projects')}</span>
-        </Link>
+        </RouterNavLink>
       </div>
 
       <nav className="personal-claude-sidebar-body" aria-label={localize('com_ui_chat_history')}>

@@ -103,6 +103,7 @@ const Reasoning = memo(({ reasoning, isLast }: ReasoningProps) => {
         <div className="mb-2 pb-2 pt-2">
           <ThinkingButton
             isExpanded={isExpanded}
+            isThinking={effectiveIsSubmitting && isLast}
             onClick={handleClick}
             label={label}
             content={reasoningText}

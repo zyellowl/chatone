@@ -41,7 +41,11 @@ export default function SettingsDialog({ open, onOpenChange }: TDialogProps) {
 
   return (
     <Transition appear show={open}>
-      <Dialog as="div" className="relative z-50" onClose={() => onOpenChange(false)}>
+      <Dialog
+        as="div"
+        className="chatone-settings-root relative z-50"
+        onClose={() => onOpenChange(false)}
+      >
         <TransitionChild
           enter="ease-out duration-200"
           enterFrom="opacity-0"
@@ -75,7 +79,7 @@ export default function SettingsDialog({ open, onOpenChange }: TDialogProps) {
                   <button
                     type="button"
                     onClick={() => setMobileDetail(false)}
-                    className="-ml-1 flex items-center gap-1 rounded-lg p-1 text-text-primary transition-colors hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-border-xheavy"
+                    className="-ml-1 flex min-h-11 items-center gap-1 rounded-lg px-1 text-text-primary transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-xheavy"
                     aria-label={localize('com_ui_back')}
                   >
                     <ChevronLeft className="h-5 w-5" aria-hidden="true" />
@@ -91,7 +95,7 @@ export default function SettingsDialog({ open, onOpenChange }: TDialogProps) {
                 <button
                   type="button"
                   onClick={() => onOpenChange(false)}
-                  className="rounded-lg p-1 text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-primary focus:outline-none focus:ring-2 focus:ring-border-xheavy"
+                  className="flex h-11 w-11 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-xheavy"
                 >
                   <X className="h-5 w-5" aria-hidden="true" />
                   <span className="sr-only">{localize('com_ui_close_settings')}</span>

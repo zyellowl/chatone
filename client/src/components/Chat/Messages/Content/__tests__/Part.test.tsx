@@ -82,6 +82,18 @@ const toolCallPart = (name: string, args = '{"code":"echo hi"}'): TMessageConten
   }) as unknown as TMessageContentParts;
 
 describe('Part tool renderer selection', () => {
+  it.each([
+    { type: ContentTypes.TEXT, text: ' ' },
+    { type: ContentTypes.AGENT_UPDATE, agent_update: { agentId: 'agent-1' } },
+  ] as TMessageContentParts[])('clears the waiting state after stopping a $type part', (part) => {
+    const { rerender } = render(
+      <Part part={part} isSubmitting showCursor isLast isCreatedByUser={false} />,
+    );
+    expect(screen.getByTestId('empty-text')).toBeInTheDocument();
+    rerender(<Part part={part} isSubmitting={false} showCursor isLast isCreatedByUser={false} />);
+    expect(screen.queryByTestId('empty-text')).not.toBeInTheDocument();
+  });
+
   it('routes bash PTC tool calls through the BashCall renderer', () => {
     renderPart(toolCallPart(Constants.BASH_PROGRAMMATIC_TOOL_CALLING));
 

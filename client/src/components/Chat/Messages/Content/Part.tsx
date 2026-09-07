@@ -75,7 +75,7 @@ const Part = memo(function Part({
     return (
       <>
         <AgentUpdate currentAgentId={part[ContentTypes.AGENT_UPDATE]?.agentId} />
-        {isLast && showCursor && (
+        {isLast && showCursor && isSubmitting && (
           <Container>
             <EmptyText />
           </Container>
@@ -94,7 +94,7 @@ const Part = memo(function Part({
     /** Handle whitespace-only text to avoid layout shift */
     if (text.length > 0 && /^\s*$/.test(text)) {
       /** Show placeholder for whitespace-only last part during streaming */
-      if (isLast && showCursor) {
+      if (isLast && showCursor && isSubmitting) {
         return (
           <Container>
             <EmptyText />

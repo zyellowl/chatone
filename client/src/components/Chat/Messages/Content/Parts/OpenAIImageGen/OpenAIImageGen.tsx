@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { PixelCard } from '@librechat/client';
+import GeneratingImage from '~/custom/effects/GeneratingImage';
 import type { TAttachment, TFile, TAttachmentMetadata } from 'librechat-data-provider';
 import { ToolIcon, isError } from '~/components/Chat/Messages/Content/ToolOutput';
 import Image from '~/components/Chat/Messages/Content/Image';
@@ -231,14 +231,8 @@ export default function OpenAIImageGen({
       {isAgentStyle && !hideAttachments && (
         <div className="relative mb-2 flex w-full justify-start">
           <div ref={containerRef} className="w-full max-w-lg">
-            {dimensions.width !== 'auto' && progress < 1 && (
-              <PixelCard
-                variant="default"
-                progress={progress}
-                randomness={0.6}
-                width={dimensions.width}
-                height={dimensions.height}
-              />
+            {dimensions.width !== 'auto' && isInProgress && !filepath && (
+              <GeneratingImage width={dimensions.width} height={dimensions.height} />
             )}
             {filepath && (
               <Image

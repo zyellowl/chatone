@@ -1686,7 +1686,10 @@ body {
   background: transparent;
 }
 
-.personal-claude-sidebar-body [data-testid='convo-item'] > div:first-child > :first-child {
+.personal-claude-sidebar-body
+  [data-testid='convo-item']
+  > div:first-child:not([role='form'])
+  > :first-child {
   display: none;
 }
 
