@@ -1,4 +1,4 @@
-export type JojooSection = 'home' | 'blog' | 'chat' | 'thoughts';
+export type JojooSection = 'home' | 'knowledge' | 'blog' | 'chat' | 'thoughts';
 
 export type KnowledgeTopic = 'overview' | 'experience' | 'project' | 'skill' | 'education' | 'note';
 

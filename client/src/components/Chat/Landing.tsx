@@ -211,12 +211,10 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
   );
 }
 
-export function VisitorLanding({ compact = false }: { compact?: boolean } = {}) {
+export function VisitorLanding() {
   const localize = useLocalize();
   return (
-    <div
-      className={`personal-claude-landing flex h-full max-h-full transform-gpu flex-col items-center justify-center transition-all duration-200 ${compact ? 'chatone-visitor-landing' : 'pb-16 sm:max-h-0'}`}
-    >
+    <div className="personal-claude-landing flex h-full max-h-full transform-gpu flex-col items-center justify-center pb-16 transition-all duration-200 sm:max-h-0">
       <div className="flex flex-col items-center gap-0 p-2">
         <h1 className="personal-claude-greeting text-2xl font-medium text-text-primary sm:text-4xl">
           {localize('com_ui_chat_input_placeholder')}

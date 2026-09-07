@@ -582,6 +582,16 @@ body {
   padding-inline: 0.9rem;
 }
 
+.chatone-visitor-quota {
+  width: min(100%, 50rem);
+  margin: 0 auto 0.45rem;
+  padding-inline: 1rem;
+  color: var(--lib-ink-muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  text-align: right;
+}
+
 .personal-claude-form [data-testid='chat-composer'] {
   min-height: 7rem;
   border: 1px solid transparent !important;
@@ -591,6 +601,13 @@ body {
   transition:
     box-shadow 220ms var(--lib-ease),
     transform 300ms var(--lib-ease);
+}
+
+.chatone-visitor-route .personal-claude-form textarea[data-testid='text-input'],
+.chatone-visitor-route .personal-claude-form textarea[data-testid='text-input']:focus {
+  border: 0;
+  outline: none;
+  box-shadow: none;
 }
 
 .personal-claude-form [data-testid='chat-composer']:focus-within {
@@ -1285,181 +1302,4 @@ html.chatone-ios.chatone-app .personal-claude-form .chatone-metal button[type='s
   background: transparent !important;
   box-shadow: none !important;
   border-color: transparent !important;
-}
-
-/* Compact cross-origin surface used by the jojoo.cc corner conversation. */
-.chatone-visitor-route.is-embedded {
-  color-scheme: light;
-  --lib-tone: 0 0 0;
-  --lib-canvas-rgb: 250 250 249;
-  --lib-canvas: #fafaf9;
-  --lib-surface: #ffffff;
-  --lib-surface-raised: #f3f3f1;
-  --lib-surface-control: #e9e9e7;
-  --lib-surface-hover: #ededeb;
-  --lib-surface-active: #e4e4e1;
-  --lib-border: rgb(23 23 23 / 7%);
-  --lib-border-strong: rgb(23 23 23 / 12%);
-  --lib-border-bright: rgb(23 23 23 / 22%);
-  --lib-ink: #171717;
-  --lib-ink-soft: #242424;
-  --lib-ink-muted: #6b6b6b;
-  --lib-ink-faint: #858585;
-  --lib-shadow-card: 0 1px 3px rgb(15 23 42 / 5%), inset 0 0 0 1px rgb(23 23 23 / 7%);
-  --lib-shadow-focus: 0 8px 24px rgb(15 23 42 / 8%), 0 0 22px rgb(0 113 252 / 7%);
-  --text-primary: var(--lib-ink-soft);
-  --text-secondary: var(--lib-ink-muted);
-  --text-secondary-alt: var(--lib-ink-muted);
-  --text-tertiary: var(--lib-ink-faint);
-  --surface-primary: var(--lib-canvas);
-  --surface-primary-alt: var(--lib-canvas);
-  --surface-primary-contrast: var(--lib-surface);
-  --surface-secondary: var(--lib-surface);
-  --surface-secondary-alt: var(--lib-surface-raised);
-  --surface-tertiary: var(--lib-surface-raised);
-  --surface-chat: var(--lib-surface);
-  --surface-hover: var(--lib-surface-hover);
-  --surface-hover-alt: var(--lib-surface-active);
-  --border-light: var(--lib-border);
-  --border-medium: var(--lib-border-strong);
-  --ring: 213 100% 49%;
-  background: var(--lib-canvas) !important;
-}
-
-.chatone-visitor-embed-shell {
-  position: relative;
-  display: grid;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  grid-template-rows: minmax(0, 1fr) auto;
-  overflow: hidden;
-  background: var(--lib-canvas);
-}
-
-.chatone-visitor-embed-content {
-  display: flex;
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
-.chatone-visitor-landing {
-  width: 100%;
-  min-height: 0;
-  padding: 1.5rem 1.5rem 0.75rem !important;
-}
-
-.chatone-visitor-landing .personal-claude-greeting {
-  max-width: 18rem;
-  color: var(--lib-ink);
-  font-size: clamp(1.35rem, 6vw, 1.72rem) !important;
-  line-height: 1.16;
-  letter-spacing: -0.035em;
-}
-
-.chatone-visitor-embed-composer {
-  position: relative;
-  z-index: 2;
-  padding: 0.65rem 0.75rem 0.8rem;
-  background: linear-gradient(to top, var(--lib-canvas) 76%, rgb(250 250 249 / 88%), transparent);
-}
-
-.chatone-visitor-route.is-embedded .personal-claude-form {
-  display: block;
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 0;
-}
-
-.chatone-visitor-route.is-embedded .personal-claude-form > div,
-.chatone-visitor-route.is-embedded .personal-claude-form > div > div {
-  width: 100%;
-}
-
-.chatone-visitor-route.is-embedded .personal-claude-form [data-testid='chat-composer'] {
-  position: relative;
-  display: block;
-  min-height: 3.75rem;
-  margin: 0;
-  padding: 0 !important;
-  overflow: hidden;
-  border: 1px solid var(--lib-border-strong) !important;
-  border-radius: 1.05rem !important;
-  background: var(--lib-surface) !important;
-  box-shadow: var(--lib-shadow-card) !important;
-}
-
-.chatone-visitor-route.is-embedded
-  .personal-claude-form
-  [data-testid='chat-composer']:focus-within {
-  border-color: rgb(0 113 252 / 55%) !important;
-  box-shadow:
-    var(--lib-shadow-card),
-    0 0 0 3px rgb(0 113 252 / 9%) !important;
-}
-
-.chatone-visitor-route.is-embedded .personal-claude-form [data-testid='text-input'] {
-  width: 100%;
-  min-height: 3.7rem !important;
-  max-height: 8.5rem;
-  padding: 1.05rem 3.7rem 0.9rem 1rem !important;
-  color: var(--lib-ink-soft);
-  font-size: 0.92rem;
-  line-height: 1.45;
-}
-
-.chatone-visitor-route.is-embedded
-  .personal-claude-form
-  [data-testid='chat-composer']
-  > .flex:last-child {
-  position: absolute;
-  right: 0.52rem;
-  bottom: 0.48rem;
-  padding: 0;
-}
-
-.chatone-visitor-route.is-embedded .personal-claude-form [data-testid='send-button'],
-.chatone-visitor-route.is-embedded .personal-claude-form [data-testid='stop-generation-button'] {
-  width: 2.65rem;
-  height: 2.65rem;
-  min-width: 2.65rem;
-  min-height: 2.65rem;
-  color: var(--lib-blue);
-}
-
-.chatone-visitor-route.is-embedded .personal-claude-header {
-  height: 3rem;
-  padding: 0.3rem 0.55rem;
-  background: linear-gradient(to bottom, var(--lib-canvas) 55%, transparent);
-}
-
-.chatone-visitor-route.is-embedded .personal-claude-header button {
-  width: 2.35rem;
-  height: 2.35rem;
-  color: var(--lib-ink-muted);
-}
-
-.chatone-visitor-messages {
-  width: 100%;
-  max-width: 100%;
-  padding: 2.75rem 0.15rem 0.6rem;
-}
-
-.chatone-visitor-messages .message-render {
-  width: 100%;
-  max-width: 100%;
-  color: var(--lib-ink-soft);
-  font-size: 0.9rem;
-  line-height: 1.58;
-}
-
-.chatone-visitor-messages .user-turn > .chatone-message-body {
-  width: fit-content;
-  max-width: 88%;
-  margin-left: auto;
-  border-radius: 1rem 1rem 0.35rem 1rem;
-  background: var(--lib-surface-raised);
-  padding: 0.66rem 0.8rem;
 }

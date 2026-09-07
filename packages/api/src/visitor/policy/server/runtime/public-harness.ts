@@ -1,18 +1,20 @@
-export { evaluatePublicQuestion } from "../../shared/public-question.js";
+export { evaluatePublicQuestion } from "../../shared/public-question";
 import { createHash } from "node:crypto";
 
 import { z } from "zod";
 
-import type { PublicKnowledgeTopic, PublicProfile } from "../../shared/protocol.js";
+import type { PublicKnowledgeTopic, PublicProfile } from "../../shared/protocol";
 import {
   containsSensitivePublicText,
   normalizePublicTextForSafety,
-} from "../public-profile.js";
+} from "../public-profile";
 
 export const PUBLIC_MODEL_OUTPUT_REFUSAL =
   "这次回答未通过公开资料边界校验，无法展示。";
 export const PUBLIC_MODEL_REFUSAL =
   "现有公开简历不足以可靠回答这个问题，我不会猜测或补写。";
+export const PUBLIC_MODEL_CLARIFICATION =
+  "请把问题具体到公开简历中的经历、项目、技能、教育、工作方式或岗位匹配。";
 
 export type PublicFactTopic =
   | "overview"
@@ -65,6 +67,16 @@ export type PublicPiDecision =
       decision: "refuse";
       code: "MODEL_REFUSED" | "MODEL_OUTPUT_REJECTED";
       factIds: [];
+    }
+  | {
+      decision: "insufficient";
+      code: "MODEL_FOUND_INSUFFICIENT_FACTS";
+      factIds: [];
+    }
+  | {
+      decision: "clarify";
+      code: "MODEL_REQUESTED_CLARIFICATION";
+      factIds: [];
     };
 
 export type PublicHarnessAnswer =
@@ -75,8 +87,13 @@ export type PublicHarnessAnswer =
       text: string;
     }
   | {
-      decision: "refuse";
-      code: "MODEL_REFUSED" | "MODEL_OUTPUT_REJECTED" | "OUTPUT_GUARD_REJECTED";
+      decision: "refuse" | "insufficient" | "clarify";
+      code:
+        | "MODEL_REFUSED"
+        | "MODEL_FOUND_INSUFFICIENT_FACTS"
+        | "MODEL_REQUESTED_CLARIFICATION"
+        | "MODEL_OUTPUT_REJECTED"
+        | "OUTPUT_GUARD_REJECTED";
       factIds: [];
       text: string;
     };
@@ -222,14 +239,14 @@ export function buildPublicFactProjection(
 
 const piDecisionSchema = z
   .strictObject({
-    decision: z.enum(["answer", "refuse"]),
+    decision: z.enum(["answer", "refuse", "insufficient", "clarify"]),
     factIds: z
       .array(
         z.string().regex(
           /^(?:overview|experience|project|skill|education|note):[0-9a-f]{20}$/u,
         ),
       )
-      .max(32),
+      .max(5),
   })
   .superRefine((value, context) => {
     if (value.decision === "answer" && value.factIds.length === 0) {
@@ -239,10 +256,10 @@ const piDecisionSchema = z
         path: ["factIds"],
       });
     }
-    if (value.decision === "refuse" && value.factIds.length !== 0) {
+    if (value.decision !== "answer" && value.factIds.length !== 0) {
       context.addIssue({
         code: "custom",
-        message: "a refusal cannot select facts",
+        message: "a non-answer cannot select facts",
         path: ["factIds"],
       });
     }
@@ -270,6 +287,20 @@ export function parsePublicPiDecision(
   if (!parsed.success) return rejectedPiDecision;
   if (parsed.data.decision === "refuse") {
     return { decision: "refuse", code: "MODEL_REFUSED", factIds: [] };
+  }
+  if (parsed.data.decision === "insufficient") {
+    return {
+      decision: "insufficient",
+      code: "MODEL_FOUND_INSUFFICIENT_FACTS",
+      factIds: [],
+    };
+  }
+  if (parsed.data.decision === "clarify") {
+    return {
+      decision: "clarify",
+      code: "MODEL_REQUESTED_CLARIFICATION",
+      factIds: [],
+    };
   }
   const known = new Set(projection.facts.map((fact) => fact.factId));
   if (parsed.data.factIds.some((id) => !known.has(id))) return rejectedPiDecision;
@@ -347,15 +378,21 @@ export function resolvePublicPiOutput(
   projection: PublicFactProjection,
 ): PublicHarnessAnswer {
   const selection = parsePublicPiDecision(raw, projection);
-  if (selection.decision === "refuse") {
+  if (selection.decision !== "answer") {
+    let text = PUBLIC_MODEL_OUTPUT_REFUSAL;
+    if (
+      selection.code === "MODEL_REFUSED" ||
+      selection.code === "MODEL_FOUND_INSUFFICIENT_FACTS"
+    ) {
+      text = PUBLIC_MODEL_REFUSAL;
+    } else if (selection.code === "MODEL_REQUESTED_CLARIFICATION") {
+      text = PUBLIC_MODEL_CLARIFICATION;
+    }
     return {
-      decision: "refuse",
+      decision: selection.decision,
       code: selection.code,
       factIds: [],
-      text:
-        selection.code === "MODEL_REFUSED"
-          ? PUBLIC_MODEL_REFUSAL
-          : PUBLIC_MODEL_OUTPUT_REFUSAL,
+      text,
     };
   }
   const text = renderPublicFacts(projection, selection.factIds);

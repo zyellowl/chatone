@@ -9,6 +9,7 @@ import {
   Globe2,
   Home,
   Lightbulb,
+  LibraryBig,
   LoaderCircle,
   MessageCircleMore,
   Save,
@@ -25,10 +26,12 @@ import OpenSidebar from '~/components/Chat/Menus/OpenSidebar';
 import { useLocalize } from '~/hooks';
 import BlogEditor from './BlogEditor';
 import ProfileEditor from './ProfileEditor';
+import VisitorQuotaAdmin from './VisitorQuotaAdmin';
 import './site-studio.css';
 
 const sections = [
   { id: 'home', icon: Home, title: 'com_workspace_site_home' },
+  { id: 'knowledge', icon: LibraryBig, title: 'com_workspace_site_knowledge' },
   { id: 'blog', icon: BookOpenText, title: 'com_workspace_site_blog' },
   { id: 'chat', icon: MessageCircleMore, title: 'com_workspace_site_chat' },
   { id: 'thoughts', icon: Lightbulb, title: 'com_workspace_site_thoughts' },
@@ -36,6 +39,7 @@ const sections = [
 
 const descriptions = {
   home: 'com_workspace_site_home_desc',
+  knowledge: 'com_workspace_site_knowledge_desc',
   blog: 'com_workspace_site_blog_desc',
   chat: 'com_workspace_site_chat_desc',
   thoughts: 'com_workspace_site_thoughts_page_desc',
@@ -271,6 +275,7 @@ export default function SiteStudioPage() {
               onChange={setProfile}
             />
           ) : null}
+          {section === 'chat' ? <VisitorQuotaAdmin /> : null}
           {section === 'blog' ? <BlogEditor /> : null}
         </section>
       </div>

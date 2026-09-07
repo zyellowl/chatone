@@ -1474,7 +1474,18 @@
   "com_usage_quota_live": "实时",
   "com_usage_quota_unavailable": "请先在上方连接 ChatGPT 会员，即可查看剩余额度。",
   "com_usage_zenmux_only": "ZenMux API",
+  "com_workspace_site_knowledge": "简历知识库",
+  "com_workspace_site_knowledge_desc": "维护公开简历问答可使用的工作经历、项目、技能、教育和事实依据。",
+  "com_workspace_site_visitor_quota": "访客问答额度",
+  "com_workspace_site_visitor_quota_desc": "每位匿名访客累计可提交 20 个问题。刷新和新建对话不会重置，只有这里可以重置。",
+  "com_workspace_site_visitor_quota_loading": "正在读取访客额度…",
+  "com_workspace_site_visitor_quota_forbidden": "当前账号没有额度管理权限。",
+  "com_workspace_site_visitor_quota_empty": "还没有访客问答记录。",
+  "com_workspace_site_visitor_quota_identity": "访客 {{0}}",
+  "com_workspace_site_visitor_quota_usage": "已用 {{0}} 次 · 剩余 {{1}} 次",
+  "com_workspace_site_visitor_quota_reset": "重置",
   "com_ui_chatone": "ChatOne",
+  "com_ui_visitor_quota_remaining": "公开简历问答 · 剩余 {{0}} / {{1}} 次",
   "com_ui_projects": "项目",
   "com_user_message": "您"
 }

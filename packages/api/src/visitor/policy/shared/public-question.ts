@@ -1,5 +1,5 @@
 // Pure topic policy shared by the public runtime and the isolated visitor page.
-import type { PublicFactProjection, PublicQuestionResult, PublicQuestionTopic } from "../server/runtime/public-harness.js";
+import type { PublicFactProjection, PublicQuestionResult, PublicQuestionTopic } from "../server/runtime/public-harness";
 const questionTopicOrder: PublicQuestionTopic[] = ["overview", "experience", "project", "skill", "education", "note", "fit"];
 function normalizedText(value: string): string {
   return value.normalize("NFKC").replace(/\p{Cf}/gu, "").replace(/\s+/gu, " ").trim();
@@ -12,13 +12,13 @@ const privateIdentityQuestion =
 const compensationQuestion =
   /(?:期望薪资|薪资|工资|收入|薪酬|待遇|salary|compensation|\bincome\b|\bpay\b)/iu;
 const secretOrInternalQuestion =
-  /(?:聊天记录|对话历史|历史记录|服务器|密码|数据库|读取文件|上传文件|下载文件|chat\s+history|conversation\s+history|\bserver\b|\bpassword\b|api[\s_-]*key|access[\s_-]*token|auth(?:entication)?[\s_-]*token|\btoken\b|session[\s_-]*cookie|\bcookie\b|系统提示|隐藏提示|开发者消息|内部路径|文件路径|服务器配置|内部配置|环境变量|密钥|凭据|system\s+prompt|developer\s+message|hidden\s+prompt|server\s+config(?:uration)?|internal\s+path|file\s+path|environment\s+variables?|credentials?|\.env\b|OPENAI_API_KEY|CAREER_AGENT_[A-Z0-9_]+|\/(?:Users|home|etc|var)\/[^\s]+|[A-Z]:\\[^\s]+)/iu;
+  /(?:聊天记录|对话历史|历史记录|密码|读取文件|上传文件|下载文件|chat\s+history|conversation\s+history|\bpassword\b|api[\s_-]*key|access[\s_-]*token|auth(?:entication)?[\s_-]*token|session[\s_-]*cookie|系统提示|隐藏提示|开发者消息|内部路径|文件路径|服务器配置|内部配置|环境变量|密钥|凭据|system\s+prompt|developer\s+message|hidden\s+prompt|server\s+config(?:uration)?|internal\s+path|file\s+path|environment\s+variables?|credentials?|\.env\b|OPENAI_API_KEY|CAREER_AGENT_[A-Z0-9_]+|\/(?:Users|home|etc|var)\/[^\s]+|[A-Z]:\\[^\s]+)/iu;
 const promptInjectionQuestion =
   /(?:ignore\s+(?:(?:all|any)\s+)?(?:previous|prior|above|system|developer)\s+(?:instructions?|rules?|messages?)|disregard\s+(?:the\s+)?(?:previous|above|system|rules?)|(?:override|bypass)\b.{0,40}\b(?:instructions?|rules?|policy|safety)|\bjailbreak\b|pretend\s+(?:you\s+are|to\s+be)\b.{0,30}\b(?:admin|administrator|system|developer)|忽略.{0,16}(?:之前|以上|系统|规则|指令|提示)|(?:覆盖|绕过).{0,20}(?:安全|限制|规则|策略|指令)|假装.{0,20}(?:管理员|系统|开发者)|越狱)/iu;
 
 const allowedTopicPatterns: Record<PublicQuestionTopic, RegExp> = {
   overview:
-    /(?:介绍|是谁|姓名|名字|个人概况|职业概况|个人背景|职业背景|tell\s+me\s+about|introduce|who\s+is|candidate\s+(?:overview|background)|professional\s+(?:overview|background))/iu,
+    /(?:介绍(?:一下)?(?:你|他|她|自己|候选人)|(?:你|他|她|候选人)是谁|姓名|名字|个人概况|职业概况|个人背景|职业背景|tell\s+me\s+about\s+(?:you|him|her|the\s+candidate)|introduce\s+(?:yourself|him|her|the\s+candidate)|who\s+is\s+(?:he|she|the\s+candidate)|candidate\s+(?:overview|background)|professional\s+(?:overview|background))/iu,
   experience:
     /(?:工作经历|任职经历|职业经历|从业经历|雇主|就职|employment|work\s+history|professional\s+experience|career\s+history|employer)/iu,
   project:
@@ -119,4 +119,3 @@ export function evaluatePublicQuestion(
     topics,
   };
 }
-

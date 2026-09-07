@@ -6,7 +6,9 @@ import type {
   PublicProfile,
 } from './types';
 
-const JOJOO_API_ORIGIN = 'http://127.0.0.1:8788';
+import { getTokenHeader } from 'librechat-data-provider';
+
+const JOJOO_API_ORIGIN = '/api/admin/jojoo';
 
 export class JojooHttpError extends Error {
   constructor(
@@ -20,8 +22,13 @@ export class JojooHttpError extends Error {
 }
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const authorization = getTokenHeader();
   const response = await fetch(`${JOJOO_API_ORIGIN}${path}`, {
     ...init,
+    headers: {
+      ...init.headers,
+      ...(authorization ? { Authorization: authorization } : {}),
+    },
     credentials: 'include',
     cache: 'no-store',
   });
@@ -44,14 +51,14 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 }
 
 export function getProfile(signal?: AbortSignal): Promise<ProfileSnapshot> {
-  return request('/api/studio/content', { signal });
+  return request('/content', { signal });
 }
 
 export function saveProfile(
   profile: PublicProfile,
   expectedVersion: number,
 ): Promise<ProfileSnapshot> {
-  return request('/api/studio/content', {
+  return request('/content', {
     method: 'PUT',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ profile, expectedVersion }),
@@ -59,7 +66,7 @@ export function saveProfile(
 }
 
 export function publishProfile(expectedVersion: number): Promise<ProfileSnapshot> {
-  return request('/api/studio/content/publish', {
+  return request('/content/publish', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ expectedVersion }),
@@ -67,16 +74,16 @@ export function publishProfile(expectedVersion: number): Promise<ProfileSnapshot
 }
 
 export function listBlogArticles(signal?: AbortSignal): Promise<BlogArticle[]> {
-  return request('/api/studio/blog/articles', { signal });
+  return request('/blog/articles', { signal });
 }
 
 export function getBlogArticle(id: string, signal?: AbortSignal): Promise<BlogArticle> {
-  return request(`/api/studio/blog/articles/${encodeURIComponent(id)}`, { signal });
+  return request(`/blog/articles/${encodeURIComponent(id)}`, { signal });
 }
 
 export function saveBlogArticle(article: BlogMutation, id?: string): Promise<BlogArticle> {
   return request(
-    id ? `/api/studio/blog/articles/${encodeURIComponent(id)}` : '/api/studio/blog/articles',
+    id ? `/blog/articles/${encodeURIComponent(id)}` : '/blog/articles',
     {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -86,11 +93,11 @@ export function saveBlogArticle(article: BlogMutation, id?: string): Promise<Blo
 }
 
 export function deleteBlogArticle(id: string): Promise<void> {
-  return request(`/api/studio/blog/articles/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  return request(`/blog/articles/${encodeURIComponent(id)}`, { method: 'DELETE' });
 }
 
 export function uploadBlogMedia(file: File): Promise<BlogMediaUpload> {
-  return request('/api/studio/blog/media', {
+  return request('/blog/media', {
     method: 'POST',
     headers: { 'content-type': file.type || 'application/octet-stream' },
     body: file,

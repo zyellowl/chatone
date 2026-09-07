@@ -11,7 +11,7 @@ import { useLocalize } from '~/hooks';
 
 interface ProfileEditorProps {
   profile: PublicProfile;
-  section: 'home' | 'chat' | 'thoughts';
+  section: 'home' | 'knowledge' | 'chat' | 'thoughts';
   disabled: boolean;
   onChange: (profile: PublicProfile) => void;
 }
@@ -307,10 +307,7 @@ export default function ProfileEditor({
           <AddButton
             label={localize('com_workspace_site_add_thought')}
             onClick={() =>
-              update('notes', [
-                ...notes,
-                { title: '', summary: '', evidence: [], sources: [], ownerAttested: true },
-              ])
+              update('notes', [...notes, { title: '', summary: '', evidence: [], sources: [] }])
             }
           />
         </Card>
@@ -500,7 +497,6 @@ export default function ProfileEditor({
                 period: '',
                 summary: '',
                 sources: [],
-                ownerAttested: true,
               },
             ])
           }
@@ -595,7 +591,7 @@ export default function ProfileEditor({
           onClick={() =>
             update('projects', [
               ...profile.projects,
-              { name: '', summary: '', evidence: [], sources: [], ownerAttested: true },
+              { name: '', summary: '', evidence: [], sources: [] },
             ])
           }
         />
@@ -697,7 +693,7 @@ export default function ProfileEditor({
           onClick={() =>
             update('education', [
               ...education,
-              { institution: '', credential: '', period: '', sources: [], ownerAttested: true },
+              { institution: '', credential: '', period: '', sources: [] },
             ])
           }
         />
