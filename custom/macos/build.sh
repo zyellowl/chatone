@@ -10,7 +10,7 @@ MACOS_DIR="$CONTENTS_DIR/MacOS"
 RESOURCES_DIR="$CONTENTS_DIR/Resources"
 ICONSET_DIR="$BUILD_DIR/AppIcon.iconset"
 MASTER_ICON="$BUILD_DIR/AppIcon-1024.png"
-SOURCE_ICON="$SCRIPT_DIR/AppIcon-troll.png"
+SOURCE_ICON="$PROJECT_DIR/custom/ios/artwork/feather-natural-quill.png"
 export CLANG_MODULE_CACHE_PATH="$BUILD_DIR/clang-module-cache"
 export SWIFT_MODULECACHE_PATH="$BUILD_DIR/swift-module-cache"
 

@@ -12,6 +12,9 @@ npm run macos:build
 The application is generated at `dist/ChatOne.app`. It is ad-hoc signed for local use and can
 be opened directly or copied to `/Applications`.
 
+The macOS bundle uses the same `artwork/feather-natural-quill.png` brand icon as the iOS app so
+the two native apps do not drift to different artwork.
+
 At launch, the app checks `http://127.0.0.1:3080/api/config`. If LibreChat is not available, it
 starts Docker Desktop when needed, then starts the existing `chat-mongodb`, `chat-meilisearch`, and
 `ChatOne` containers. If Docker Desktop still owns the local port but its engine has stopped

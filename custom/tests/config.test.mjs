@@ -206,7 +206,8 @@ test('macOS startup cannot hang forever on Docker or a throttled bridge', async 
   assert.match(launcher, /static let workspacePath = "workspace"/);
   assert.match(launcher, /reconnectURL \?\? self\.serviceController\.workspaceURL/);
   assert.match(launcher, /title: "打开工作台"/);
-  assert.match(macBuild, /AppIcon-troll\.png/);
+  assert.match(macBuild, /artwork\/feather-natural-quill\.png/);
+  assert.doesNotMatch(macBuild, /AppIcon-troll\.png/);
   assert.match(agent, /<key>WorkingDirectory<\/key>/);
   assert.doesNotMatch(agent, /<key>ProcessType<\/key>/);
   assert.match(installer, /Set :WorkingDirectory \$RUNTIME_DIR/);

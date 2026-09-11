@@ -1,6 +1,7 @@
 # App icon attribution
 
-`AppIcon-troll.png` comes from the open-source TrollStore project:
+`AppIcon-troll.png` is a retained legacy asset and is no longer used by the ChatOne build. It comes
+from the open-source TrollStore project:
 
 - Project: https://github.com/opa334/TrollStore
 - Source asset: `TrollStore/Resources/AppIcon60x60@3x.png`
